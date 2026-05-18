@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.mypy_cache/
+
+# Environments
+.env
+venv/
+.venv/
+
+# Data — never commit large files
+*.csv
+*.sqlite3
+data_store/chroma_db/
+data_store/*.json
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
