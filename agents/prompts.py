@@ -20,15 +20,14 @@ In 2-3 sentences, describe:
 Output ONLY the analysis paragraph. No headers. No bullet points.
 """
 
-STRATEGY_SYSTEM = """You are the Chief Energy Trading Analyst at a quantitative 
-hedge fund specializing in PJM electricity forward markets. You synthesize 
-quantitative model signals, historical precedents, and risk metrics into 
-precise, actionable trading mandates for the firm's energy desk.
+STRATEGY_SYSTEM = """You are the Chief Grid Operations Analyst at PJM Interconnection. 
+You synthesize quantitative model signals, historical precedents, and risk metrics into 
+precise, actionable operational mandates for the physical energy grid.
 
 Your output must always be a valid JSON object — nothing else."""
 
 STRATEGY_HUMAN = """
-Synthesize the following intelligence into a trading mandate:
+Synthesize the following intelligence into an operational grid mandate:
 
 ## Quantitative Signals
 - SARIMA Baseline WAPE: {sarima_wape:.2%}
@@ -55,21 +54,20 @@ Synthesize the following intelligence into a trading mandate:
 
 Produce a JSON object with EXACTLY these keys:
 {{
-  "recommendation": "BUY" | "SELL" | "HOLD",
-  "contract_type": "FORWARD_30D" | "FORWARD_7D" | "SPOT",
+  "recommendation": "INCREASE GENERATION" | "DEPLOY RESERVES" | "MAINTAIN OPS",
+  "contract_type": "DAY_AHEAD" | "REAL_TIME" | "CAPACITY_MARKET",
   "confidence_score": integer 0-100,
-  "position_size": "FULL" | "HALF" | "QUARTER",
-  "risk_factors": [list of 3-5 specific risk factors as strings],
+  "risk_factors": [list of 3-5 specific physical grid risk factors as strings],
   "key_signals": [list of 3 most important quantitative signals driving the decision],
-  "rationale": "2-paragraph explanation of the reasoning",
+  "rationale": "A highly detailed, professional 2-3 paragraph explanation detailing EXACTLY the 'Why' (technical reasoning and physical grid implications), the 'How' (how operators should execute this mandate), and the 'What' (what operators should expect to see). You MUST explain the meaning behind your chosen 'contract_type' in professional terms.",
   "stop_loss_trigger": "string describing what event would invalidate this mandate",
   "time_horizon": "string describing when to re-evaluate"
 }}
 """
 
-CONSERVATIVE_ADVISORY_SYSTEM = """You are a Risk Manager at a quantitative energy 
-fund. Your role is to issue conservative advisories when model confidence is 
-insufficient to justify active positioning."""
+CONSERVATIVE_ADVISORY_SYSTEM = """You are a Risk Manager at PJM Interconnection. 
+Your role is to issue conservative operational advisories when model confidence is 
+insufficient to justify drastic grid balancing actions."""
 
 CONSERVATIVE_ADVISORY_HUMAN = """
 The GridOps AI pipeline has flagged LOW CONFIDENCE for this forecast run.
@@ -80,12 +78,11 @@ Chronos WAPE: {chronos_wape:.2%}
 
 Issue a conservative advisory JSON with EXACTLY these keys:
 {{
-  "recommendation": "HOLD",
-  "contract_type": "SPOT",
+  "recommendation": "MAINTAIN OPS",
+  "contract_type": "REAL_TIME",
   "confidence_score": integer 0-40,
-  "position_size": "NONE",
   "risk_factors": [list of 3 factors causing low confidence],
-  "advisory_note": "2-sentence explanation of why active positioning is inadvisable",
+  "advisory_note": "A highly detailed, professional 2-3 paragraph explanation of EXACTLY why active grid adjustments are inadvisable right now. Detail the 'Why' (model divergence or uncertainty), the 'How' (how operators should maintain ops safely), and the 'What' (what risks are being avoided).",
   "re_evaluation_trigger": "string describing what data/signal would increase confidence",
   "time_horizon": "Re-evaluate in 7 days"
 }}

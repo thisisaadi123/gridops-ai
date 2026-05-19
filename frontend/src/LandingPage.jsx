@@ -1,0 +1,305 @@
+import React, { useState } from 'react';
+
+export function LandingPage({
+  threshold, setThreshold, horizon, setHorizon, error, onStart
+}) {
+  const [step, setStep] = useState(1);
+  const totalSteps = 4;
+
+  const nextStep = () => setStep(s => Math.min(s + 1, totalSteps));
+  const prevStep = () => setStep(s => Math.max(s - 1, 1));
+
+  return (
+    <div className="landing">
+      {/* Hero section */}
+      <section className="compact-hero">
+        <span className="kicker">Autonomous Energy Grid Intelligence</span>
+        <h1>Predict demand. Quantify risk.</h1>
+        <p className="subtitle">
+          GridOps AI is a multi-agent system that evaluates classical statistical models against deep learning foundation models. 
+          It mathematically measures their divergence to detect grid anomalies, retrieves historical context, 
+          and generates actionable trading mandates.
+        </p>
+      </section>
+
+      {/* Stepper Navigation */}
+      <div className="stepper-nav">
+        {[
+          { num: 1, label: "Configuration" },
+          { num: 2, label: "Dual-Model Architecture" },
+          { num: 3, label: "Graph Execution" },
+          { num: 4, label: "Intelligence Engine" }
+        ].map(item => (
+          <div 
+            key={item.num} 
+            className={`step-item ${step === item.num ? 'active' : ''} ${step > item.num ? 'completed' : ''}`}
+            onClick={() => setStep(item.num)}
+          >
+            <div className="step-label">Step {item.num}: {item.label}</div>
+            <button className="step-dot" aria-label={`Go to step ${item.num}`} />
+          </div>
+        ))}
+      </div>
+
+      <div className="walkthrough-container">
+        <div className="walkthrough-content">
+          {step === 1 && (
+            <Step1Config 
+              threshold={threshold} setThreshold={setThreshold}
+              horizon={horizon} setHorizon={setHorizon}
+              error={error}
+            />
+          )}
+          {step === 2 && <Step2Models />}
+          {step === 3 && <Step3Pipeline />}
+          {step === 4 && <Step4Intelligence />}
+        </div>
+
+        {/* Navigation Actions */}
+        <div className="walkthrough-actions">
+          {step > 1 ? (
+            <button className="btn-secondary" onClick={prevStep} style={{ width: '140px' }}>
+              ← Previous
+            </button>
+          ) : (
+            <div style={{ width: '140px' }} /> /* Placeholder to maintain flex alignment */
+          )}
+          
+          <div className="step-indicator">Step {step} of {totalSteps}</div>
+          
+          {step < totalSteps ? (
+            <button className="btn-primary" onClick={nextStep} style={{ width: '140px', margin: 0 }}>
+              Next →
+            </button>
+          ) : (
+            <button className="btn-primary start-btn" onClick={onStart} style={{ width: '220px', margin: 0 }}>
+              Execute Pipeline
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   WALKTHROUGH STEPS
+   ══════════════════════════════════════ */
+
+function Step1Config({ threshold, setThreshold, horizon, setHorizon, error }) {
+  return (
+    <div className="step-pane animation-fade-in glass-card">
+      <div className="step-header">
+        <h2>1. Configure the Execution</h2>
+        <p>Define the parameters for the forecasting models and the risk threshold for the AI agents.</p>
+      </div>
+
+      <div className="config-grid" style={{ gridTemplateColumns: '1fr', maxWidth: '600px', margin: '0 auto' }}>
+        <div className="field-group">
+          <label className="field-label">Forecast Horizon: <span className="highlight-text">{horizon} days</span></label>
+          <p className="field-help">Determines the future prediction window. This automatically reserves the final {horizon} days of the historical dataset as an unseen holdout set to empirically verify model accuracy.</p>
+          <div className="horizon-btns">
+            {[7, 14, 30].map(d => (
+              <button key={d} className={`horizon-btn ${horizon === d ? 'active' : ''}`}
+                onClick={() => setHorizon(d)} type="button">{d}d</button>
+            ))}
+          </div>
+        </div>
+
+        <div className="field-group" style={{ marginTop: '24px' }}>
+          <label className="field-label">Severity Action Threshold: <span className="highlight-text">{threshold.toFixed(2)}</span></label>
+          <p className="field-help">Risk Tolerance: Adjust the sensitivity of the AI's anomaly detection. The mathematical severity score ranges from 0.0 to 1.0. If the computed score exceeds this threshold, the AI routes to an aggressive grid balancing strategy (e.g. INCREASE GENERATION). If below, it defaults to a conservative MAINTAIN OPS advisory.</p>
+          <input type="range" className="slider" min="0" max="1" step="0.05"
+            value={threshold} onChange={e => setThreshold(parseFloat(e.target.value))} />
+          <div className="slider-labels">
+            <span>0.0 (Highly Aggressive)</span>
+            <span>1.0 (Highly Conservative)</span>
+          </div>
+        </div>
+
+        {error && <div className="error-bar" style={{marginTop: '24px'}}>{error}</div>}
+      </div>
+    </div>
+  );
+}
+
+function Step2Models() {
+  return (
+    <div className="step-pane animation-fade-in glass-card">
+      <div className="step-header">
+        <h2>2. Dual-Model Architecture</h2>
+        <p>The system generates two forecasts using entirely different methodologies to detect structural anomalies.</p>
+      </div>
+
+      <div className="explain-grid">
+        <div className="explain-card stats-focus">
+          <div className="explain-header">
+            <div>
+              <h4>The Baseline: SARIMA</h4>
+              <span className="explain-subtitle">Classical Statistics</span>
+            </div>
+          </div>
+          <div className="explain-body">
+            <p><strong>Methodology:</strong> SARIMA analyzes the historical shape of electricity demand—identifying daily cyclical behavior and weekly routines—and mathematically projects that exact pattern forward.</p>
+            <p><strong>Implication:</strong> It operates under the assumption that the future will mirror the past. It provides a robust, deterministic baseline but cannot adapt to unprecedented events or sudden regime shifts.</p>
+          </div>
+        </div>
+        
+        <div className="explain-card ai-focus">
+          <div className="explain-header">
+            <div>
+              <h4>The Challenger: Chronos</h4>
+              <span className="explain-subtitle">Deep Learning Foundation Model</span>
+            </div>
+          </div>
+          <div className="explain-body">
+            <p><strong>Methodology:</strong> Amazon Chronos tokenizes time-series data akin to language models tokenizing text. It infers complex, non-linear relationships across massive pre-trained datasets rather than merely extrapolating local history.</p>
+            <p><strong>Implication:</strong> It provides a probabilistic forecast via quantile regression. It generates a median prediction (p50) alongside an 80% confidence interval (bounded by the p10 and p90 quantiles). A tighter interval indicates higher model confidence.</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="formula-breakdown">
+        <h3 className="card-title" style={{border: 'none', padding: 0}}>The Scorecard: WAPE</h3>
+        <p className="muted-text" style={{marginBottom: '16px'}}>
+          The system utilizes <strong>Weighted Absolute Percentage Error (WAPE)</strong> to quantify accuracy against the holdout data. 
+          A WAPE of 5% indicates the model's total error volume equaled 5% of the actual demand volume. <strong>Lower is better.</strong> 
+          If the deep learning model significantly outperforms the statistical baseline, it signals the detection of an anomaly the baseline statistics failed to capture.
+        </p>
+        <div className="formula-display">
+          Sum( |Actual - Forecast| ) / Sum( |Actual| )
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Step3Pipeline() {
+  return (
+    <div className="step-pane animation-fade-in glass-card">
+      <div className="step-header">
+        <h2>3. LangGraph Agent Execution</h2>
+        <p>Following forecast generation, a state machine of seven specialized nodes analyzes the results to formulate a trading mandate.</p>
+      </div>
+
+      <div className="pipeline-visual">
+        <PipelineNode num="1" name="Data Validator" type="math"
+          desc="Circuit breaker. Validates data integrity by checking for missing values, sufficient historical length, and extreme variance. Halts execution safely if data is corrupt." />
+        
+        <div className="pipeline-fork">
+          <div className="pipeline-branch">
+            <PipelineNode num="2A" name="Divergence Analyst" type="math"
+              desc="Executes a differential analysis comparing the deterministic SARIMA trajectory against the probabilistic Chronos median. Synthesizes divergence magnitude, WAPE improvement, and interval sharpness into a standardized composite Severity Score (0.0 - 1.0) to quantify structural anomalies." />
+          </div>
+          <div className="pipeline-parallel-label">Parallel Execution</div>
+          <div className="pipeline-branch">
+            <PipelineNode num="2B" name="Seasonality Detector" type="llm"
+              desc="Leverages a Large Language Model (Groq) to cross-reference the numerical forecast with expected physical grid conditions. Identifies the prevailing operational regime (e.g., transitional shoulder months) to contextualize the severity of the anomaly." />
+          </div>
+        </div>
+        
+        <PipelineNode num="3" name="RAG Retriever" type="rag"
+          desc="Queries a ChromaDB Vector Database to retrieve historical grid events (e.g., severe weather, infrastructure failures) that semantically match the current anomaly pattern." />
+        
+        <PipelineNode num="4" name="Risk Quantifier" type="math"
+          desc="Computes an empirical Value-at-Risk (VaR) profile. By analyzing the delta between the upper (p90) and lower (p10) quantile bounds, it translates the deep learning model's probabilistic uncertainty into definitive upside/downside Megawatt exposure." />
+        
+        <div className="pipeline-gate">
+          <div className="gate-label">
+            <span style={{background: 'rgba(245, 158, 11, 0.2)', padding: '4px 12px', borderRadius: '16px'}}>
+              Conditional Router: Is Severity Score {'≥'} User Threshold?
+            </span>
+          </div>
+          <div className="gate-branches">
+            <div className="gate-yes">
+              <PipelineNode num="5A" name="Strategy Formulator" type="llm"
+                desc="Triggered when Severity ≥ Threshold. Functions as the primary grid adjustment engine. Synthesizes the VaR profile, historical RAG context, and seasonal risks to formulate a high-conviction INCREASE GENERATION or DEPLOY RESERVES mandate, complete with precise capacity sizing." />
+            </div>
+            <div className="gate-no">
+              <PipelineNode num="5B" name="Conservative Advisory" type="llm"
+                desc="Triggered when Severity < Threshold. Acts as the system's risk-mitigation circuit breaker. Classifies the minor forecast divergence as standard market stochasticity and mandates a strict HOLD to preserve capital." />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Step4Intelligence() {
+  return (
+    <div className="step-pane animation-fade-in glass-card">
+      <div className="step-header">
+        <h2>4. The Intelligence Engine</h2>
+        <p>Understanding the exact mathematics of the anomaly trigger and how historical context is utilized.</p>
+      </div>
+
+      <div className="intelligence-grid">
+        <div className="intelligence-main">
+          <h3 className="card-title">The Severity Score (Anomaly Trigger)</h3>
+          <p className="muted-text" style={{marginBottom: '16px'}}>
+            The severity score dictates the routing of the final recommendation. It is derived through <strong>pure mathematics</strong>, ensuring deterministic and reproducible routing behavior. It combines three normalized signals (scaled 0-1) with the following strict weighting:
+          </p>
+          
+          <div className="formula-display">
+            Severity = 0.40(Divergence) + 0.35(WAPE Gap) + 0.25(Sharpness)
+          </div>
+
+          <div className="signal-list">
+            <div className="signal-item">
+              <div className="signal-weight">40%</div>
+              <div className="signal-desc">
+                <h5>Divergence Magnitude</h5>
+                <p>The absolute percentage gap between the Chronos and SARIMA median forecasts. High divergence indicates the deep learning model has detected a trend the statistical baseline failed to capture.</p>
+              </div>
+            </div>
+            <div className="signal-item">
+              <div className="signal-weight">35%</div>
+              <div className="signal-desc">
+                <h5>WAPE Accuracy Gap</h5>
+                <p>The difference in accuracy on the historical holdout data. If Chronos demonstrates significantly higher accuracy than SARIMA, the system heavily weights its divergent forecast.</p>
+              </div>
+            </div>
+            <div className="signal-item">
+              <div className="signal-weight">25%</div>
+              <div className="signal-desc">
+                <h5>Band Sharpness</h5>
+                <p>The tightness of the Chronos 80% confidence interval (the spread between p10 and p90). A wide interval indicates model uncertainty, which mathematically penalizes the overall severity score.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="intelligence-side">
+          <h3 className="card-title">Historical Event Memory (RAG)</h3>
+          <p className="muted-text" style={{marginBottom: '24px'}}>
+            Node 3 queries a local <strong>ChromaDB</strong> vector database containing records of actual PJM grid events. 
+            If the current data signature matches the buildup to a historical disruption (e.g., the 2014 Polar Vortex), the LLM is provided that historical context to recommend appropriate protective action.
+          </p>
+          <div style={{ padding: '20px', background: 'rgba(6, 182, 212, 0.05)', borderRadius: '8px', border: '1px solid rgba(6, 182, 212, 0.2)' }}>
+            <h4 style={{ fontSize: '15px', color: 'var(--text-primary)', marginBottom: '8px' }}>Manage Database</h4>
+            <p className="muted-text" style={{ marginBottom: '16px', fontSize: '13px' }}>
+              You can inject hypothetical or historical grid events into the database via the Event Database view. The AI will immediately utilize these new embeddings during the next execution.
+            </p>
+            <p className="muted-text" style={{ fontSize: '13px' }}>
+              <em>Access the Event Database from the top navigation bar.</em>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PipelineNode({ num, name, type, desc }) {
+  return (
+    <div className={`pipe-node pipe-${type}`}>
+      <div className="pipe-header">
+        <span className="pipe-num">{num}</span>
+        <strong>{name}</strong>
+        <span className={`pipe-type type-${type}`}>{type === 'math' ? 'Algorithm' : type === 'llm' ? 'LLM (Groq)' : 'Vector DB'}</span>
+      </div>
+      <p className="pipe-body">{desc}</p>
+    </div>
+  );
+}

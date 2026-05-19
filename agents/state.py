@@ -22,12 +22,15 @@ class GridOpsState(TypedDict):
     sarima_forecast: list            # 30-day array as list
     sarima_wape: float
     sarima_backtest_wape: float      # rolling backtest mean WAPE
+    backtest_wape: float             # UI alias for SARIMA rolling backtest WAPE
     chronos_p10: list
     chronos_p50: list
     chronos_p90: list
     chronos_wape: float
     interval_sharpness: float        # novel metric: tightness of confidence band
     historical_data: list            # last N days for plotting
+    holdout_data: list               # 30-day actual holdout values for comparison
+    holdout_dates: list              # ISO date strings for holdout actuals
     forecast_dates: list             # ISO date strings for x-axis
 
     # === Analysis (populated by parallel nodes) ===

@@ -83,14 +83,13 @@ class GridEventRetriever:
             Sorted by ``similarity_score`` descending.
         """
         # 1. Embed the query
-        query_embedding: list[float] = (
-            self._model.encode(
-                query,
-                normalize_embeddings=True,
-                convert_to_numpy=True,
-            )
-            .tolist()
+        from typing import Any
+        encoded: Any = self._model.encode(
+            query,
+            normalize_embeddings=True,
+            convert_to_numpy=True,
         )
+        query_embedding: list[float] = encoded.tolist()
         logger.debug(f"Query embedded: '{query[:80]}{'…' if len(query) > 80 else ''}'")
 
         # 2. Build optional where clause
@@ -113,8 +112,14 @@ class GridEventRetriever:
 
         # 4. Unpack and enrich results
         # ChromaDB returns lists-of-lists (one sub-list per query embedding).
-        metadatas: list[dict] = raw["metadatas"][0]
-        distances: list[float] = raw["distances"][0]
+        _metadatas = raw.get("metadatas")
+        _distances = raw.get("distances")
+
+        if _metadatas is None or _distances is None:
+            return []
+
+        metadatas = _metadatas[0]
+        distances = _distances[0]
 
         results: list[dict] = []
         for meta, dist in zip(metadatas, distances):

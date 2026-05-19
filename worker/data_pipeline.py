@@ -87,15 +87,15 @@ class EnergyDataPipeline:
         self.daily_series.name = "PJME"
 
         # Missing percentage at the daily level (what the model actually trains on)
-        missing_pct = float(self.daily_series.isnull().mean() * 100)
+        missing_pct = float(self.daily_series.isnull().mean() * 100)  # type: ignore
 
         # Compute descriptive statistics
         self.data_stats = {
             "total_days": len(self.daily_series),
-            "mean_load": round(float(self.daily_series.mean()), 4),
-            "std_load": round(float(self.daily_series.std()), 4),
-            "min_load": round(float(self.daily_series.min()), 4),
-            "max_load": round(float(self.daily_series.max()), 4),
+            "mean_load": round(float(self.daily_series.mean()), 4),  # type: ignore
+            "std_load": round(float(self.daily_series.std()), 4),    # type: ignore
+            "min_load": round(float(self.daily_series.min()), 4),    # type: ignore
+            "max_load": round(float(self.daily_series.max()), 4),    # type: ignore
             "missing_pct": missing_pct,
         }
 
@@ -125,12 +125,12 @@ class EnergyDataPipeline:
                 f"Insufficient data: only {self.data_stats['total_days']} days available (minimum 365 required)."
             )
 
-        missing_pct = float(self.daily_series.isnull().mean() * 100)
+        missing_pct = float(self.daily_series.isnull().mean() * 100)  # type: ignore
         if missing_pct > 5:
             issues.append(f"Too many gaps: {missing_pct}% missing (max 5%)")
 
         if (self.daily_series < 0).any():
-            neg_count = int((self.daily_series < 0).sum())
+            neg_count = int((self.daily_series < 0).sum())  # type: ignore
             issues.append(
                 f"Negative load values detected: {neg_count} days with negative MW readings."
             )
@@ -144,17 +144,19 @@ class EnergyDataPipeline:
     # Train / holdout split
     # ------------------------------------------------------------------
 
-    def split_holdout(self, n_days: int = 30) -> None:
+    def split_holdout(self, n_days: int = 30, holdout_days: int | None = None) -> None:
         """Split the daily series into training and holdout sets chronologically.
 
         Args:
             n_days: Number of trailing days to reserve for the holdout set.
+            holdout_days: Alias for n_days (takes priority if provided).
         """
         if self.daily_series is None:
             raise ValueError("Daily series not available – call load_and_preprocess() first.")
 
-        self.train = self.daily_series.iloc[:-n_days]
-        self.holdout = self.daily_series.iloc[-n_days:]
+        days = holdout_days if holdout_days is not None else n_days
+        self.train = self.daily_series.iloc[:-days]
+        self.holdout = self.daily_series.iloc[-days:]
 
     # ------------------------------------------------------------------
     # Seasonality detection
@@ -208,16 +210,19 @@ class EnergyDataPipeline:
 
         warnings.filterwarnings("default")
 
-    def forecast_sarima(self) -> np.ndarray:
-        """Produce a 30-step ahead forecast from the fitted SARIMA model.
+    def forecast_sarima(self, steps: int = 30) -> np.ndarray:
+        """Produce a multi-step ahead forecast from the fitted SARIMA model.
+
+        Args:
+            steps: Number of days to forecast ahead.
 
         Returns:
-            np.ndarray of length 30 with forecasted daily MW values.
+            np.ndarray of length `steps` with forecasted daily MW values.
         """
         if self.sarima_model is None:
             raise ValueError("SARIMA model not fitted – call fit_sarima() first.")
 
-        forecast = self.sarima_model.forecast(steps=30)
+        forecast = self.sarima_model.forecast(steps=steps)
         return np.array(forecast)
 
     # ------------------------------------------------------------------

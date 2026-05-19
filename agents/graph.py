@@ -25,8 +25,9 @@ def should_run_full_strategy(state: GridOpsState) -> str:
     raise it to be more conservative.
     """
     score = state.get("anomaly_severity_score", 0.0)
-    route = "strategy_formulator" if score >= 0.40 else "conservative_advisory"
-    logger.info(f"RISK GATE | Score: {score:.3f} → Routing to: {route}")
+    threshold = state.get("severity_threshold", 0.40)
+    route = "strategy_formulator" if score >= threshold else "conservative_advisory"
+    logger.info(f"RISK GATE | Score: {score:.3f} >= {threshold:.2f}? → Routing to: {route}")
     return route
 
 
@@ -83,15 +84,14 @@ def build_gridops_graph():
         "validate_data",
         should_continue_after_validation,
         {
-            "continue": "divergence_analyst",   # will also trigger seasonality in parallel
+            "continue": "divergence_analyst",
             "end": END,
         }
     )
 
-    # Fan-out: both analyst nodes start after validation passes
-    # LangGraph runs nodes with no dependency on each other in parallel
-    builder.add_edge("validate_data", "seasonality_detector")  # parallel with divergence_analyst
-    # NOTE: LangGraph automatically runs both edges in parallel
+    # Fan-out: seasonality_detector runs in parallel with divergence_analyst.
+    # Guarded inside the node body to skip LLM call on bad data.
+    builder.add_edge("validate_data", "seasonality_detector")
 
     # Fan-in: rag_retriever waits for BOTH parallel nodes
     builder.add_edge("divergence_analyst", "rag_retriever")

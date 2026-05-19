@@ -119,7 +119,7 @@ def divergence_analyst_node(state: GridOpsState) -> dict:
         f"SARIMA WAPE: {state['sarima_wape']:.4f} | "
         f"Chronos WAPE: {state['chronos_wape']:.4f} | "
         f"Delta: {wape_delta:.4f} ({'Chronos wins' if wape_delta > 0 else 'SARIMA wins'})\n"
-        f"Chronos Rolling Backtest WAPE: {state.get('sarima_backtest_wape', 0):.4f}\n"
+        f"SARIMA Rolling Backtest WAPE: {state.get('sarima_backtest_wape', 0):.4f}\n"
         f"Interval Sharpness Score: {state.get('interval_sharpness', 0):.6f}\n"
         f"Anomaly Severity Score: {anomaly_severity_score:.4f} / 1.0\n"
         f"\nInterpretation: {'High divergence signals a structural regime shift ' if anomaly_severity_score > 0.6 else 'Models are in reasonable agreement — '}"
@@ -148,6 +148,17 @@ def seasonality_detector_node(state: GridOpsState) -> dict:
     LLM call is lightweight — grok-beta handles this in ~1 second.
     """
     logger.info("NODE 2B | Seasonality Detector | Starting")
+
+    # Guard: skip LLM call if data quality failed (node still fires via
+    # unconditional edge, but we don't waste an API call on bad data)
+    if not state.get("data_quality_valid", True):
+        logger.warning("NODE 2B | Skipping — data quality validation failed")
+        return {
+            "seasonal_demand_pattern": "Skipped due to data quality failure.",
+            "seasonal_risk_factor": "N/A",
+            "analysis_findings": ["Seasonality analysis skipped — data quality invalid"],
+            "graph_execution_trace": ["seasonality_detector_node (skipped)"],
+        }
 
     llm = _get_llm()
     regime = state.get("seasonality_regime", "SHOULDER")
@@ -330,10 +341,10 @@ def strategy_formulator_node(state: GridOpsState) -> dict:
 
     # Build readable narrative summary
     mandate_narrative = (
-        f"**{mandate['recommendation']}** {mandate['contract_type']} "
-        f"(Confidence: {mandate['confidence_score']}% | "
-        f"Position: {mandate['position_size']})\n\n"
-        f"{mandate['rationale']}"
+        f"{mandate.get('rationale', '')}\n\n"
+        f"**Contract Phase**: {mandate.get('contract_type', 'N/A')}\n"
+        f"**Stop Loss Trigger**: {mandate.get('stop_loss_trigger', 'N/A')}\n"
+        f"**Risk Factors**: {', '.join(mandate.get('risk_factors', []))}"
     )
 
     logger.info(
@@ -383,7 +394,6 @@ def conservative_advisory_node(state: GridOpsState) -> dict:
     mandate = json.loads(raw_json)
 
     mandate_narrative = (
-        f"**HOLD** — Conservative Advisory (Low Confidence: {mandate['confidence_score']}%)\n\n"
         f"{mandate.get('advisory_note', '')}\n\n"
         f"Re-evaluation trigger: {mandate.get('re_evaluation_trigger', 'N/A')}"
     )

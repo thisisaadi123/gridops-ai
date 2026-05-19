@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 
 @celery_app.task(bind=True, name='tasks.run_gridops_pipeline', max_retries=2)
-def run_gridops_pipeline(self, dataset_path: str) -> dict:
+def run_gridops_pipeline(self, dataset_path: str, severity_threshold: float = 0.40, forecast_horizon: int = 30) -> dict:
     try:
         self.update_state(
             state='PROGRESS',
@@ -22,14 +22,14 @@ def run_gridops_pipeline(self, dataset_path: str) -> dict:
         pipeline = EnergyDataPipeline(dataset_path)
         pipeline.load_and_preprocess()
         pipeline.validate_data_quality()
-        pipeline.split_holdout()
+        pipeline.split_holdout(holdout_days=forecast_horizon)
         pipeline.detect_seasonality_regime()
         assert pipeline.train is not None
         assert pipeline.holdout is not None
         assert pipeline.data_stats is not None
         assert pipeline.seasonality_regime is not None
         pipeline.fit_sarima()
-        sarima_fc = pipeline.forecast_sarima()
+        sarima_fc = pipeline.forecast_sarima(steps=forecast_horizon)
         backtest = pipeline.rolling_backtest()
         sarima_wape = pipeline.calculate_wape(
             pipeline.holdout.values,  # pyrefly: ignore[bad-argument-type]
@@ -48,7 +48,7 @@ def run_gridops_pipeline(self, dataset_path: str) -> dict:
         client = get_chronos_client()
         chronos_result = client.forecast(
             pipeline.train.values,  # pyrefly: ignore[bad-argument-type]
-            prediction_length=30,
+            prediction_length=forecast_horizon,
             num_samples=20,
         )
         chronos_p10 = chronos_result['p10']
@@ -78,8 +78,13 @@ def run_gridops_pipeline(self, dataset_path: str) -> dict:
         forecast_start = pipeline.train.index[-1] + timedelta(days=1)
         forecast_dates = [
             (forecast_start + timedelta(days=i)).date().isoformat()
-            for i in range(30)
+            for i in range(forecast_horizon)
         ]
+        # Holdout dates for actual vs forecast comparison
+        holdout_dates = [
+            d.date().isoformat() for d in pipeline.holdout.index
+        ]
+
         initial_state = {
             'dataset_path': dataset_path,
             'seasonality_regime': pipeline.seasonality_regime,
@@ -87,13 +92,18 @@ def run_gridops_pipeline(self, dataset_path: str) -> dict:
             'sarima_forecast': sarima_fc.tolist(),
             'sarima_wape': sarima_wape,
             'sarima_backtest_wape': backtest['mean_wape'],
+            'backtest_wape': backtest['mean_wape'],
             'chronos_p10': chronos_p10.tolist(),
             'chronos_p50': chronos_p50.tolist(),
             'chronos_p90': chronos_p90.tolist(),
             'chronos_wape': chronos_wape,
             'interval_sharpness': sharpness,
             'historical_data': pipeline.train.values[-90:].tolist(),
+            'holdout_data': pipeline.holdout.values.tolist(),
+            'holdout_dates': holdout_dates,
             'forecast_dates': forecast_dates,
+            'severity_threshold': severity_threshold,
+            'forecast_horizon': forecast_horizon,
             'analysis_findings': [],
             'graph_execution_trace': [],
             'pipeline_start_ts': datetime.utcnow().isoformat(),
@@ -111,15 +121,22 @@ def run_gridops_pipeline(self, dataset_path: str) -> dict:
         )
         logger.info('COMPLETE | Starting')
         return {
+            'dataset_path': dataset_path,
             'sarima_forecast': result['sarima_forecast'],
             'sarima_wape': result['sarima_wape'],
             'sarima_backtest_wape': result['sarima_backtest_wape'],
+            'backtest_wape': result.get(
+                'backtest_wape',
+                result['sarima_backtest_wape'],
+            ),
             'chronos_p10': result['chronos_p10'],
             'chronos_p50': result['chronos_p50'],
             'chronos_p90': result['chronos_p90'],
             'chronos_wape': result['chronos_wape'],
             'interval_sharpness': result['interval_sharpness'],
             'historical_data': result['historical_data'],
+            'holdout_data': result.get('holdout_data', []),
+            'holdout_dates': result.get('holdout_dates', []),
             'forecast_dates': result['forecast_dates'],
             'data_stats': result['data_stats'],
             'seasonality_regime': result['seasonality_regime'],
@@ -130,6 +147,12 @@ def run_gridops_pipeline(self, dataset_path: str) -> dict:
             'graph_execution_trace': result['graph_execution_trace'],
             'pipeline_start_ts': result['pipeline_start_ts'],
             'pipeline_end_ts': datetime.utcnow().isoformat(),
+            'retrieved_events': result.get('retrieved_events', []),
+            'anomaly_severity_score': result.get('anomaly_severity_score', 0.0),
+            'seasonal_demand_pattern': result.get('seasonal_demand_pattern', ''),
+            'seasonal_risk_factor': result.get('seasonal_risk_factor', ''),
+            'severity_threshold': severity_threshold,
+            'forecast_horizon': forecast_horizon,
         }
     except Exception as e:
         logger.error(f'Pipeline task failed: {e}')
