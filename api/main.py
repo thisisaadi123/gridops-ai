@@ -44,7 +44,15 @@ async def health():
         redis_status = 'connected'
     except Exception:
         redis_status = 'disconnected'
-    return {'status': 'healthy', 'redis': redis_status, 'version': '1.0.0'}
+
+    # Check if any Celery workers are alive
+    try:
+        ping_resp = celery_app.control.ping(timeout=1.0)
+        celery_status = 'connected' if ping_resp else 'disconnected'
+    except Exception:
+        celery_status = 'disconnected'
+
+    return {'status': 'healthy', 'redis': redis_status, 'celery': celery_status, 'version': '1.0.0'}
 
 
 @app.post('/orchestrate', status_code=202)

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 
 const RANDOM_EVENTS = [
   { event_type: "Texas Deep Freeze (Uri Pattern)", severity: "CRITICAL", description: "Unprecedented multi-day freezing temperatures causing severe grid strain and widespread generation failure.", demand_impact_pct: 25.4, grid_region: "PJM-South" },
@@ -8,10 +8,52 @@ const RANDOM_EVENTS = [
   { event_type: "Industrial Shutdown", severity: "LOW", description: "Planned maintenance of major manufacturing hubs causing sudden drop in base load.", demand_impact_pct: -5.5, grid_region: "PJM-East" }
 ];
 
+const SEVERITY_LEVELS = ['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
+const SEVERITY_COLORS = {
+  CRITICAL: 'var(--accent-rose)',
+  HIGH: '#f97316',
+  MEDIUM: 'var(--accent-amber)',
+  LOW: 'var(--accent-emerald)',
+};
+
 export function EventsDatabase({ events, onAddEvent, onBack }) {
   const [form, setForm] = useState({ event_type: '', severity: 'MEDIUM', description: '', demand_impact_pct: 0, grid_region: 'PJM-West' });
   const [msg, setMsg] = useState('');
   const [loading, setLoading] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('ALL');
+  const [searchText, setSearchText] = useState('');
+
+  // Count events per severity
+  const severityCounts = useMemo(() => {
+    const counts = { ALL: events.length, CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
+    events.forEach(ev => {
+      const sev = (ev.severity || '').toUpperCase();
+      if (counts[sev] !== undefined) counts[sev]++;
+    });
+    return counts;
+  }, [events]);
+
+  // Filter events
+  const filteredEvents = useMemo(() => {
+    let filtered = events;
+    
+    // Severity filter
+    if (activeFilter !== 'ALL') {
+      filtered = filtered.filter(ev => (ev.severity || '').toUpperCase() === activeFilter);
+    }
+    
+    // Text search
+    if (searchText.trim()) {
+      const query = searchText.toLowerCase();
+      filtered = filtered.filter(ev =>
+        (ev.event_type || '').toLowerCase().includes(query) ||
+        (ev.description || '').toLowerCase().includes(query) ||
+        (ev.grid_region || '').toLowerCase().includes(query)
+      );
+    }
+    
+    return filtered;
+  }, [events, activeFilter, searchText]);
 
   function autofill() {
     const random = RANDOM_EVENTS[Math.floor(Math.random() * RANDOM_EVENTS.length)];
@@ -98,14 +140,75 @@ export function EventsDatabase({ events, onAddEvent, onBack }) {
         </div>
 
         <div className="glass-card" style={{ maxHeight: '800px', overflowY: 'auto' }}>
-          <h2 style={{ fontSize: '20px', marginBottom: '24px', color: 'var(--text-primary)' }}>Vector DB Contents</h2>
+          <h2 style={{ fontSize: '20px', marginBottom: '16px', color: 'var(--text-primary)' }}>Vector DB Contents</h2>
           
-          {events.length === 0 ? (
-            <div className="empty-msg">No events found in the database.</div>
+          {/* Search Input */}
+          <div className="events-search-bar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input 
+              className="events-search-input"
+              type="text"
+              placeholder="Search events by name, description, or region..."
+              value={searchText}
+              onChange={e => setSearchText(e.target.value)}
+            />
+            {searchText && (
+              <button className="events-search-clear" onClick={() => setSearchText('')} type="button">×</button>
+            )}
+          </div>
+
+          {/* Severity Filter Pills */}
+          <div className="filter-bar">
+            {SEVERITY_LEVELS.map(level => {
+              const isActive = activeFilter === level;
+              const count = severityCounts[level] || 0;
+              const color = level === 'ALL' ? 'var(--accent-cyan)' : SEVERITY_COLORS[level];
+              return (
+                <button
+                  key={level}
+                  className={`filter-pill ${isActive ? 'active' : ''}`}
+                  onClick={() => setActiveFilter(level)}
+                  type="button"
+                  style={isActive ? { 
+                    borderColor: color, 
+                    background: `${color}15`,
+                    color: color,
+                  } : {}}
+                >
+                  {level}
+                  <span className="filter-pill-count" style={isActive ? { background: color, color: '#000' } : {}}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          
+          {filteredEvents.length === 0 ? (
+            <div className="empty-msg">
+              {events.length === 0 
+                ? 'No events found in the database.' 
+                : `No events match the current filter${searchText ? ` "${searchText}"` : ''}.`
+              }
+              {activeFilter !== 'ALL' && events.length > 0 && (
+                <button 
+                  className="link-btn" 
+                  onClick={() => { setActiveFilter('ALL'); setSearchText(''); }}
+                  style={{ marginTop: '12px', display: 'block' }}
+                >
+                  Clear all filters
+                </button>
+              )}
+            </div>
           ) : (
             <div className="event-list">
-              {events.map((ev, i) => {
-                const sevClass = `sev-${ev.severity.toLowerCase()}`;
+              <div className="events-result-count">
+                Showing {filteredEvents.length} of {events.length} events
+              </div>
+              {filteredEvents.map((ev, i) => {
+                const sevClass = `sev-${(ev.severity || 'medium').toLowerCase()}`;
                 return (
                   <div key={i} className="event-card">
                     <div className="event-header">

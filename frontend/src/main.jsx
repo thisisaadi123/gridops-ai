@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 import { LandingPage } from './LandingPage.jsx';
 import { ProgressScreen } from './ProgressScreen.jsx';
@@ -13,7 +13,7 @@ function App() {
   const [screen, setScreen] = useState('landing');
   const [threshold, setThreshold] = useState(0.40);
   const [horizon, setHorizon] = useState(30);
-  const [health, setHealth] = useState({ api: 'checking', redis: 'checking' });
+  const [health, setHealth] = useState({ api: 'checking', redis: 'checking', celery: 'checking' });
   const [taskId, setTaskId] = useState('');
   const [progress, setProgress] = useState({ status: 'IDLE', stage: '', progress: 0, message: '' });
   const [result, setResult] = useState(null);
@@ -24,7 +24,27 @@ function App() {
   const [eventsData, setEventsData] = useState([]);
   const [isDemo, setIsDemo] = useState(false);
 
-  useEffect(() => { checkHealth(); }, []);
+  const checkHealth = useCallback(async () => {
+    try {
+      const r = await fetch(`${API}/health`);
+      if (!r.ok) throw new Error();
+      const d = await r.json();
+      setHealth({
+        api: 'connected',
+        redis: d.redis || 'disconnected',
+        celery: d.celery || 'disconnected',
+      });
+    } catch {
+      setHealth({ api: 'disconnected', redis: 'disconnected', celery: 'disconnected' });
+    }
+  }, []);
+
+  // Initial health check + auto-refresh every 15s
+  useEffect(() => {
+    checkHealth();
+    const iv = setInterval(checkHealth, 15000);
+    return () => clearInterval(iv);
+  }, [checkHealth]);
 
   useEffect(() => {
     if (!taskId || screen !== 'running') return;
@@ -40,15 +60,6 @@ function App() {
     }, 1500);
     return () => clearInterval(iv);
   }, [taskId, screen]);
-
-  async function checkHealth() {
-    try {
-      const r = await fetch(`${API}/health`);
-      if (!r.ok) throw new Error();
-      const d = await r.json();
-      setHealth({ api: 'connected', redis: d.redis || 'unknown' });
-    } catch { setHealth({ api: 'disconnected', redis: 'unknown' }); }
-  }
 
   async function startPipeline() {
     setError(''); setResult(null); setStartedAt(Date.now()); setIsDemo(false);
@@ -126,6 +137,7 @@ function App() {
     <div className="shell">
       <Nav 
         screen={screen} 
+        health={health}
         onHome={() => setScreen('landing')} 
         onStatus={() => setShowStatusModal(true)}
         onDemo={loadDemo}
@@ -176,8 +188,11 @@ function App() {
   );
 }
 
-function Nav({ screen, onHome, onStatus, onDemo, isDemo, onEvents }) {
+function Nav({ screen, health, onHome, onStatus, onDemo, isDemo, onEvents }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const allConnected = health.api === 'connected' && health.redis === 'connected' && health.celery === 'connected';
+  const anyDisconnected = health.api === 'disconnected' || health.redis === 'disconnected' || health.celery === 'disconnected';
 
   return (
     <header className={`nav ${isMobileMenuOpen ? 'mobile-menu-open' : ''}`}>
@@ -194,6 +209,13 @@ function Nav({ screen, onHome, onStatus, onDemo, isDemo, onEvents }) {
         </button>
       </div>
       <div className="nav-right">
+        {/* Live Health Indicator */}
+        <button className="nav-health-indicator" onClick={() => { onStatus(); setIsMobileMenuOpen(false); }} type="button" title="View system status">
+          <HealthDot label="API" status={health.api} />
+          <HealthDot label="Redis" status={health.redis} />
+          <HealthDot label="Worker" status={health.celery} />
+        </button>
+
         {screen === 'landing' && (
           <button className="btn-secondary compact" onClick={() => { onDemo(); setIsMobileMenuOpen(false); }} type="button">
             Demo Mode
@@ -207,15 +229,29 @@ function Nav({ screen, onHome, onStatus, onDemo, isDemo, onEvents }) {
         <button className="btn-secondary compact" onClick={() => { onEvents(); setIsMobileMenuOpen(false); }} type="button">
           Event Database
         </button>
-        <button className="btn-secondary compact" onClick={() => { onStatus(); setIsMobileMenuOpen(false); }} type="button">
-          System Status
-        </button>
       </div>
     </header>
   );
 }
 
+function HealthDot({ label, status }) {
+  const isOnline = status === 'connected';
+  const isChecking = status === 'checking';
+  return (
+    <div className="health-dot-item" title={`${label}: ${isChecking ? 'Checking...' : isOnline ? 'Online' : 'Offline'}`}>
+      <i className={`dot ${isChecking ? 'amber' : isOnline ? 'emerald' : 'coral'}`} />
+      <span className="health-dot-label">{label}</span>
+    </div>
+  );
+}
+
 function StatusModal({ health, onClose, onRefresh }) {
+  const services = [
+    { key: 'api', label: 'FastAPI Core Engine', desc: 'Handles REST requests and serves the frontend API.' },
+    { key: 'redis', label: 'Redis Message Broker', desc: 'Queues pipeline tasks and stores results.' },
+    { key: 'celery', label: 'Celery Worker', desc: 'Executes the forecasting pipeline and agent reasoning.' },
+  ];
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -223,20 +259,28 @@ function StatusModal({ health, onClose, onRefresh }) {
         <h2 className="modal-title">System Status</h2>
         
         <div className="status-row">
-          <div className="status-dot-item">
-            <i className={`dot ${health.api === 'connected' ? 'emerald' : 'coral'}`} />
-            <span>FastAPI Core Engine</span>
-            <strong>{health.api === 'connected' ? 'Online' : 'Offline'}</strong>
-          </div>
-          <div className="status-dot-item">
-            <i className={`dot ${health.redis === 'unknown' ? 'coral' : 'emerald'}`} />
-            <span>Redis Celery Broker</span>
-            <strong>{health.redis === 'unknown' ? 'Offline' : 'Online'}</strong>
-          </div>
+          {services.map(svc => {
+            const status = health[svc.key];
+            const isOnline = status === 'connected';
+            const isChecking = status === 'checking';
+            return (
+              <div key={svc.key} className="status-dot-item">
+                <i className={`dot ${isChecking ? 'amber' : isOnline ? 'emerald' : 'coral'}`} />
+                <div className="status-info">
+                  <span className="status-svc-name">{svc.label}</span>
+                  <span className="status-svc-desc">{svc.desc}</span>
+                </div>
+                <strong className={isOnline ? 'status-online' : 'status-offline'}>
+                  {isChecking ? 'Checking' : isOnline ? 'Online' : 'Offline'}
+                </strong>
+              </div>
+            );
+          })}
         </div>
         
-        <button className="btn-secondary" onClick={onRefresh} style={{marginTop: '24px'}}>
-          Refresh Status
+        <p className="status-refresh-note">Status auto-refreshes every 15 seconds.</p>
+        <button className="btn-secondary" onClick={onRefresh} style={{marginTop: '16px'}}>
+          Refresh Now
         </button>
       </div>
     </div>

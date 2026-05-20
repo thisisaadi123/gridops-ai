@@ -37,7 +37,11 @@ logs/
 # Celery
 celerybeat-schedule
 celerybeat.pid
+
 # Frontend
 node_modules/
 frontend/dist/
 .env.local
+
+# ML Models
+models/

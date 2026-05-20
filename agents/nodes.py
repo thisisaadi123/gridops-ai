@@ -337,7 +337,7 @@ def strategy_formulator_node(state: GridOpsState) -> dict:
 
     # Clean and parse JSON (Grok sometimes wraps in markdown)
     raw_json = raw_json.replace("```json", "").replace("```", "").strip()
-    mandate = json.loads(raw_json)
+    mandate = json.loads(raw_json, strict=False)
 
     # Build readable narrative summary
     mandate_narrative = (
@@ -391,7 +391,7 @@ def conservative_advisory_node(state: GridOpsState) -> dict:
         raw_json = content.strip()
         
     raw_json = raw_json.replace("```json", "").replace("```", "").strip()
-    mandate = json.loads(raw_json)
+    mandate = json.loads(raw_json, strict=False)
 
     mandate_narrative = (
         f"{mandate.get('advisory_note', '')}\n\n"

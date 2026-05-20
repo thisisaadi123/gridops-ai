@@ -79,13 +79,14 @@ class BaseChronosClient(ABC):
 
 
 class LocalChronosClient(BaseChronosClient):
-    """Local Chronos-Bolt client used by default."""
+    """Local Chronos client used by default."""
 
-    def __init__(self, model_name: str = "amazon/chronos-bolt-base") -> None:
+    def __init__(self, model_name: str = "amazon/chronos-t5-base") -> None:
         import torch
 
         self.device = 'cpu'
         self.pipeline = None
+        self.model_name = model_name
 
     def forecast(
         self,
@@ -97,9 +98,9 @@ class LocalChronosClient(BaseChronosClient):
 
         if self.pipeline is None:
             from chronos import BaseChronosPipeline
-            logger.info('Lazy loading Chronos-Bolt model...')
+            logger.info(f'Lazy loading Chronos model ({self.model_name})...')
             self.pipeline = BaseChronosPipeline.from_pretrained(
-                'amazon/chronos-bolt-base',
+                self.model_name,
                 device_map=self.device,
                 torch_dtype=torch.float32,
             )
@@ -109,7 +110,7 @@ class LocalChronosClient(BaseChronosClient):
         tensor = torch.tensor(context, dtype=torch.float32)
 
         quantiles, _ = self.pipeline.predict_quantiles(
-            context=tensor,
+            inputs=tensor,
             prediction_length=prediction_length,
             quantile_levels=[0.1, 0.5, 0.9],
         )
@@ -278,11 +279,14 @@ class ChronosClient(APIChronosClient):
 
 def get_chronos_client() -> BaseChronosClient:
     """Create the configured Chronos client. Local mode is the default."""
+    from dotenv import load_dotenv
+    load_dotenv()
+    
     mode = os.getenv("CHRONOS_MODE", "local").strip().lower()
     logger.info("Chronos mode active: {}", mode)
 
     if mode == "local":
-        model_name = os.getenv("CHRONOS_MODEL_NAME", "amazon/chronos-bolt-base")
+        model_name = os.getenv("CHRONOS_MODEL_NAME", "amazon/chronos-t5-base")
         return LocalChronosClient(model_name=model_name)
 
     if mode == "api":

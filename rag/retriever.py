@@ -45,8 +45,12 @@ class GridEventRetriever:
         logger.info("Embedding model ready.")
 
         # ChromaDB
+        from chromadb.config import Settings
         logger.info(f"Connecting to ChromaDB at: {CHROMA_PATH}")
-        self._client = chromadb.PersistentClient(path=str(CHROMA_PATH))
+        self._client = chromadb.PersistentClient(
+            path=str(CHROMA_PATH),
+            settings=Settings(anonymized_telemetry=False)
+        )
         self._collection = self._client.get_collection(name=COLLECTION_NAME)
         logger.info(
             f"Connected to collection '{COLLECTION_NAME}' "

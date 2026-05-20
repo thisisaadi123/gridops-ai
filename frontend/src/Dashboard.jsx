@@ -3,17 +3,22 @@ import React, { useState, useMemo } from 'react';
 export function Dashboard({ result, elapsed, onNew, onExport, horizon }) {
   const s = useMemo(() => summarize(result, horizon), [result, horizon]);
   const [zoom, setZoom] = useState(true);
+  const [showHistory, setShowHistory] = useState(true);
 
   return (
     <div className="dashboard animation-fade-in">
       <header className="dash-header">
         <div>
-          <span className="kicker">Execution Complete</span>
+          <div className="dash-status-row">
+            <i className="dot emerald" />
+            <span className="dash-status-text">Analysis Complete</span>
+            <span className="dash-duration">{fmtDur(elapsed)}</span>
+          </div>
           <h1>{s.headline}</h1>
           <p className="subtitle">{s.subtext}</p>
+          <p className="dash-explainer">{s.explainer}</p>
         </div>
         <div className="dash-header-right">
-          <span className="badge" style={{ background: 'transparent' }}>Duration: {fmtDur(elapsed)}</span>
           <button className="btn-secondary compact" onClick={onExport} type="button">Export Forecast CSV</button>
           <button className="btn-primary compact" onClick={onNew} type="button">Run New Analysis</button>
         </div>
@@ -22,14 +27,14 @@ export function Dashboard({ result, elapsed, onNew, onExport, horizon }) {
       {/* Top Ticker Row: Metrics */}
       <div className="ticker-row" style={{ marginBottom: '24px' }}>
         <Metric label="SARIMA Baseline Error" value={pct(result.sarima_wape)}
-          help="WAPE of the classical statistical model on holdout data." />
+          help="Accuracy of the traditional statistical model. Lower is better." />
         <Metric label="Chronos AI Error" value={pct(result.chronos_wape)}
-          help={`Chronos performed ${num(result.chronos_wape) <= num(result.sarima_wape) ? 'better' : 'worse'} than baseline.`}
+          help={`The deep learning model's error rate. ${num(result.chronos_wape) <= num(result.sarima_wape) ? 'It outperformed the baseline.' : 'The baseline was more accurate on this run.'}`}
           tone={num(result.chronos_wape) <= num(result.sarima_wape) ? 'good' : 'bad'} />
         <Metric label="Historical Backtest" value={pct(result.sarima_backtest_wape)}
-          help="Average SARIMA error across three rolling windows." />
+          help="Average SARIMA error across three rolling test windows. Measures consistency." />
         <Metric label="AI Forecast Confidence" value={`${result.trading_mandate?.confidence_score || 0}%`}
-          help="Synthetic confidence score assigned by the LLM Strategy Formulator." />
+          help="How confident the AI agent is in its recommendation, based on model agreement and severity." />
       </div>
 
       {/* Top: Execution Panel (Horizontal) */}
@@ -52,46 +57,53 @@ export function Dashboard({ result, elapsed, onNew, onExport, horizon }) {
         </div>
       </div>
 
-      {/* Main Immersive Chart (Full Width) */}
+      {/* Main Immersive Chart (Full Width) — with Historical Data */}
       <div className="chart-card glass-card" style={{ position: 'relative', marginBottom: '24px', padding: '24px', display: 'flex', flexDirection: 'column' }}>
         <div style={{ marginBottom: '16px' }}>
           <h3 className="card-title" style={{ margin: 0, fontSize: '20px' }}>Composite Model Analysis</h3>
           <p className="chart-help" style={{ margin: '4px 0 0 0', maxWidth: '80%' }}>
-            High-fidelity overlay of forecasting models against actual demand. Toggle Focus Scale to dynamically compress confidence bands.
+            {showHistory 
+              ? 'Full timeline showing historical demand followed by model forecasts. The dashed vertical line marks where history ends and predictions begin.'
+              : 'Forecast-window overlay of models against actual demand. Toggle "Show History" to see the full dataset context.'
+            }
           </p>
         </div>
         
-        <button 
-          className={`chart-toggle-btn ${zoom ? 'active' : ''}`} 
-          onClick={() => setZoom(!zoom)}
-          title="Toggle Y-Axis Focus Scale"
-        >
-          {zoom ? 'Focus Scale: ON' : 'Focus Scale: OFF'}
-        </button>
+        <div className="chart-toggle-group">
+          <button 
+            className={`chart-toggle-btn ${zoom ? 'active' : ''}`} 
+            onClick={() => setZoom(!zoom)}
+            title="Toggle Y-Axis Focus Scale"
+          >
+            {zoom ? 'Focus Scale: ON' : 'Focus Scale: OFF'}
+          </button>
+          <button 
+            className={`chart-toggle-btn ${showHistory ? 'active' : ''}`} 
+            onClick={() => setShowHistory(!showHistory)}
+            title="Toggle Historical Context"
+          >
+            {showHistory ? 'History: ON' : 'History: OFF'}
+          </button>
+        </div>
         
-        <div style={{ flex: 1, minHeight: '280px' }}>
-          <SvgChart 
+        <div style={{ flex: 1, minHeight: '320px' }}>
+          <FullChart 
+            result={result}
             zoom={zoom}
-            series={[
-              { name: 'Actual Demand', data: nums(result.holdout_data), color: '#ffffff', w: 1.5 },
-              { name: 'SARIMA Baseline', data: nums(result.sarima_forecast), color: '#f59e0b', w: 1.5 },
-              { name: 'Chronos (p50)', data: nums(result.chronos_p50), color: '#38bdf8', w: 2 },
-            ]} 
-            labels={result.forecast_dates} 
-            band={{ lo: nums(result.chronos_p10), hi: nums(result.chronos_p90) }} 
+            showHistory={showHistory}
           />
         </div>
       </div>
 
       {/* Bottom Row: Drill down charts */}
       <div className="chart-pair" style={{ marginBottom: '24px' }}>
-        <ChartCard title="SARIMA Forecast vs Actual" help="The classical model's linear prediction.">
+        <ChartCard title="SARIMA Forecast vs Actual" help="The classical model's linear prediction compared against real demand.">
           <SvgChart series={[
             { name: 'Actual', data: nums(result.holdout_data), color: '#ffffff', w: 1.5 },
             { name: 'SARIMA', data: nums(result.sarima_forecast), color: '#f59e0b', w: 1.5 },
           ]} labels={result.forecast_dates} />
         </ChartCard>
-        <ChartCard title="Chronos Forecast vs Actual" help="The deep learning model with 80% confidence interval.">
+        <ChartCard title="Chronos Forecast vs Actual" help="The deep learning model with 80% confidence interval (shaded region).">
           <SvgChart series={[
             { name: 'Actual', data: nums(result.holdout_data), color: '#ffffff', w: 1.5 },
             { name: 'Chronos (p50)', data: nums(result.chronos_p50), color: '#38bdf8', w: 1.5 },
@@ -101,10 +113,201 @@ export function Dashboard({ result, elapsed, onNew, onExport, horizon }) {
       </div>
 
       <AnalysisTabs result={result} />
+
+      {/* Historical Event Similarity Section */}
+      <HistoricalSimilarity result={result} />
       
       <div style={{ paddingBottom: '20px' }}>
         <ExecutionTrace trace={result.graph_execution_trace} />
       </div>
+    </div>
+  );
+}
+
+/* ── Full Chart with Historical Context ── */
+function FullChart({ result, zoom, showHistory }) {
+  const histData = nums(result.historical_data || []);
+  const forecastActual = nums(result.holdout_data);
+  const forecastSarima = nums(result.sarima_forecast);
+  const forecastChronos = nums(result.chronos_p50);
+  const bandLo = nums(result.chronos_p10);
+  const bandHi = nums(result.chronos_p90);
+  const forecastDates = result.forecast_dates || [];
+
+  if (!showHistory || histData.length === 0) {
+    // Original forecast-only view
+    return (
+      <SvgChart 
+        zoom={zoom}
+        series={[
+          { name: 'Actual Demand', data: forecastActual, color: '#ffffff', w: 1.5 },
+          { name: 'SARIMA Baseline', data: forecastSarima, color: '#f59e0b', w: 1.5 },
+          { name: 'Chronos (p50)', data: forecastChronos, color: '#38bdf8', w: 2 },
+        ]} 
+        labels={forecastDates} 
+        band={{ lo: bandLo, hi: bandHi }} 
+      />
+    );
+  }
+
+  // Combined historical + forecast view
+  const histLen = histData.length;
+  const fcLen = forecastActual.length;
+  const totalLen = histLen + fcLen;
+
+  // Build combined series: historical only has actual demand line
+  const combinedActual = [...histData, ...forecastActual];
+  const combinedSarima = [...new Array(histLen).fill(null), ...forecastSarima];
+  const combinedChronos = [...new Array(histLen).fill(null), ...forecastChronos];
+  const combinedBandLo = [...new Array(histLen).fill(null), ...bandLo];
+  const combinedBandHi = [...new Array(histLen).fill(null), ...bandHi];
+
+  // Generate labels: historical dates counted backwards from first forecast date
+  const firstForecastDate = forecastDates[0] ? new Date(forecastDates[0]) : new Date();
+  const lastForecastDate = forecastDates[forecastDates.length - 1] ? new Date(forecastDates[forecastDates.length - 1]) : new Date();
+  const histLabels = [];
+  for (let i = histLen; i > 0; i--) {
+    const d = new Date(firstForecastDate);
+    d.setDate(d.getDate() - i);
+    histLabels.push(d.toISOString().split('T')[0]);
+  }
+  const combinedLabels = [...histLabels, ...forecastDates];
+
+  // Chart dimensions
+  const W = 860, H = 340;
+  const pad = { t: 40, r: 24, b: 64, l: 64 };
+
+  // Scale calculations
+  const allVals = combinedActual.filter(v => v !== null);
+  const fcValsForScale = zoom 
+    ? [...forecastActual, ...forecastSarima, ...forecastChronos]
+    : [...forecastActual, ...forecastSarima, ...forecastChronos, ...bandLo, ...bandHi];
+  const allForScale = [...allVals, ...fcValsForScale];
+  
+  let rawMn = Math.min(...allForScale);
+  let rawMx = Math.max(...allForScale);
+  let rawRng = rawMx - rawMn || 1;
+  const mn = rawMn - (rawRng * 0.1);
+  const mx = rawMx + (rawRng * 0.1);
+  const rng = mx - mn || 1;
+
+  const x = (i) => totalLen <= 1 ? pad.l : pad.l + (i / (totalLen - 1)) * (W - pad.l - pad.r);
+  const y = (v) => pad.t + (1 - (v - mn) / rng) * (H - pad.t - pad.b);
+
+  // Divider position
+  const dividerX = x(histLen - 0.5);
+
+  // Grid
+  const yTicks = [0, 0.25, 0.5, 0.75, 1];
+  const xTickPositions = [0, 0.2, 0.4, 0.6, 0.8, 1];
+
+  // Build paths - historical actual (continuous line)
+  const histActualPath = histData.map((v, i) => `${i === 0 ? 'M' : 'L'} ${x(i)} ${y(v)}`).join(' ');
+  
+  // Forecast paths (start from divider)
+  const fcActualPath = forecastActual.map((v, i) => `${i === 0 ? 'M' : 'L'} ${x(histLen + i)} ${y(v)}`).join(' ');
+  const fcSarimaPath = forecastSarima.map((v, i) => `${i === 0 ? 'M' : 'L'} ${x(histLen + i)} ${y(v)}`).join(' ');
+  const fcChronosPath = forecastChronos.map((v, i) => `${i === 0 ? 'M' : 'L'} ${x(histLen + i)} ${y(v)}`).join(' ');
+
+  // Connection line from last historical to first forecast actual
+  const connectionPath = `M ${x(histLen - 1)} ${y(histData[histLen - 1])} L ${x(histLen)} ${y(forecastActual[0])}`;
+
+  // Band polygon (forecast region only)
+  const bandD = [
+    ...bandHi.map((v, i) => `${i === 0 ? 'M' : 'L'} ${x(histLen + i)} ${y(v)}`),
+    ...[...bandLo].reverse().map((v, ri) => `L ${x(histLen + bandLo.length - 1 - ri)} ${y(v)}`),
+    'Z'
+  ].join(' ');
+
+  // Series for legend
+  const seriesLegend = [
+    { name: 'Actual Demand', color: '#ffffff' },
+    { name: 'SARIMA Baseline', color: '#f59e0b' },
+    { name: 'Chronos (p50)', color: '#38bdf8' },
+  ];
+
+  return (
+    <div className="svg-chart-container" style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+      <svg className="svg-chart" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-label="Full Timeline Chart" style={{ width: '100%', height: '100%', display: 'block' }}>
+        <rect x="0" y="0" width={W} height={H} rx="12" className="chart-bg" />
+
+        {/* Historical region background tint */}
+        <rect x={pad.l} y={pad.t} width={dividerX - pad.l} height={H - pad.t - pad.b} fill="rgba(255,255,255,0.02)" />
+
+        {/* Grid lines */}
+        {yTicks.map(t => {
+          const yy = pad.t + t * (H - pad.t - pad.b);
+          return (<g key={`y-${t}`}>
+            <line x1={pad.l} x2={W - pad.r} y1={yy} y2={yy} stroke="rgba(255,255,255,0.08)" />
+            <text x={pad.l - 12} y={yy + 4} className="axis-text" textAnchor="end">{Math.round(mx - t * rng).toLocaleString()}</text>
+          </g>);
+        })}
+
+        {/* X-axis labels */}
+        {xTickPositions.map(t => {
+          const xx = pad.l + t * (W - pad.l - pad.r);
+          const labelIdx = Math.floor(t * (combinedLabels.length - 1));
+          return (<g key={`x-${t}`}>
+            <line x1={xx} x2={xx} y1={pad.t} y2={H - pad.b} stroke="rgba(255,255,255,0.03)" />
+            <text x={xx} y={H - pad.b + 20} className="axis-text" textAnchor="middle">
+              {shortDate(combinedLabels[labelIdx])}
+            </text>
+          </g>);
+        })}
+
+        {/* Vertical divider line */}
+        <line x1={dividerX} x2={dividerX} y1={pad.t} y2={H - pad.b} stroke="rgba(6, 182, 212, 0.5)" strokeWidth="2" strokeDasharray="8 4" />
+        
+        {/* Forecast Start Date Marker */}
+        <rect x={dividerX - 30} y={pad.t - 22} width="60" height="18" fill="rgba(6, 182, 212, 0.15)" rx="4" />
+        <text x={dividerX} y={pad.t - 9} className="axis-text" textAnchor="middle" fill="rgba(6, 182, 212, 1)" style={{ fontSize: '11px', fontWeight: 'bold' }}>
+          {shortDate(forecastDates[0])}
+        </text>
+
+        {/* Forecast End Date Marker */}
+        {forecastDates.length > 1 && (
+          <>
+            <rect x={x(totalLen - 1) - 30} y={pad.t - 22} width="60" height="18" fill="rgba(16, 185, 129, 0.15)" rx="4" />
+            <text x={x(totalLen - 1)} y={pad.t - 9} className="axis-text" textAnchor="middle" fill="rgba(16, 185, 129, 1)" style={{ fontSize: '11px', fontWeight: 'bold' }}>
+              {shortDate(forecastDates[forecastDates.length - 1])}
+            </text>
+          </>
+        )}
+
+        {/* Region labels */}
+        <text x={(pad.l + dividerX) / 2} y={pad.t + 16} className="axis-text" textAnchor="middle" fill="rgba(255,255,255,0.3)" style={{ fontSize: '11px', letterSpacing: '0.1em' }}>HISTORICAL</text>
+        <text x={(dividerX + W - pad.r) / 2} y={pad.t + 16} className="axis-text" textAnchor="middle" fill="rgba(6, 182, 212, 0.6)" style={{ fontSize: '11px', letterSpacing: '0.1em' }}>FORECAST</text>
+
+        {/* Confidence band (forecast region only) */}
+        <path d={bandD} fill="rgba(56, 189, 248, 0.12)" stroke="rgba(56, 189, 248, 0.2)" strokeWidth="1" />
+
+        {/* Historical actual demand */}
+        <path d={histActualPath} fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+
+        {/* Connection line */}
+        <path d={connectionPath} fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1" strokeDasharray="4 3" />
+
+        {/* Forecast actual demand */}
+        <path d={fcActualPath} fill="none" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+
+        {/* Forecast SARIMA */}
+        <path d={fcSarimaPath} fill="none" stroke="#f59e0b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+
+        {/* Forecast Chronos */}
+        <path d={fcChronosPath} fill="none" stroke="#38bdf8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+
+        {/* Legend */}
+        {seriesLegend.map((s, si) => (
+          <g key={`lg-${s.name}`} transform={`translate(${pad.l + si * 130}, ${H - 14})`}>
+            <line x1="0" x2="16" y1="0" y2="0" stroke={s.color} strokeWidth="2" />
+            <text x="22" y="4" className="legend-text" style={{ fontSize: '11px' }}>{s.name}</text>
+          </g>
+        ))}
+        <g transform={`translate(${pad.l + seriesLegend.length * 130}, ${H - 14})`}>
+           <rect x="0" y="-4" width="16" height="8" fill="rgba(56, 189, 248, 0.15)" stroke="rgba(56, 189, 248, 0.3)" />
+           <text x="22" y="4" className="legend-text" style={{ fontSize: '11px' }}>80% Band</text>
+        </g>
+      </svg>
     </div>
   );
 }
@@ -227,7 +430,7 @@ function MandateCard({ result, horizontal = false }) {
   // Strip old trading terminology from rationale
   let rationale = (m.rationale || result.mandate_narrative || 'No rationale provided.')
     .replace(/\*\*/g, '').replace(/\*/g, '');
-  rationale = rationale.replace(/^(BUY|SELL|HOLD|MAINTAIN OPS|INCREASE GENERATION|DEPLOY RESERVES)\s*[-—:]\s*/i, '');
+  rationale = rationale.replace(/^(BUY|SELL|HOLD|MAINTAIN OPS|INCREASE GENERATION|DEPLOY RESERVES)\s*[—:]\s*/i, '');
     
   return (
     <div className={`mandate-card-wrapper ${horizontal ? 'horizontal-layout' : 'vertical-layout'}`}>
@@ -248,7 +451,7 @@ function MandateCard({ result, horizontal = false }) {
         
         <div>
           <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', margin: '0 0 4px 0', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>
-            <span style={{ color: 'var(--accent-rose)' }}>⚠</span> Identified Risk Factors
+            <i className="dot coral" style={{ width: '6px', height: '6px' }} /> Identified Risk Factors
           </h4>
           <ul className="risk-list" style={{ margin: 0, paddingLeft: '16px', fontSize: '12px' }}>
             {(m.risk_factors || ['No risk factors identified.']).map((r, i) => <li key={i} style={{ marginBottom: '2px' }}>{r}</li>)}
@@ -256,6 +459,107 @@ function MandateCard({ result, horizontal = false }) {
         </div>
       </div>
     </div>
+  );
+}
+
+/* ── Historical Event Similarity Section ── */
+function HistoricalSimilarity({ result }) {
+  const events = result.retrieved_events || [];
+  const query = result.rag_query_used || '';
+  const direction = result.divergence_direction || 'ALIGNED';
+  const magnitude = num(result.variance_magnitude_pct || result.anomaly_severity_score * 100);
+  const regime = result.seasonality_regime || 'UNKNOWN';
+
+  if (events.length === 0) return null;
+
+  // Generate a human-readable similarity explanation for each event
+  function getSimilarityReason(event) {
+    const impact = parseFloat(event.demand_impact_pct) || 0;
+    const impactDir = impact > 0 ? 'upward' : impact < 0 ? 'downward' : 'neutral';
+    const currentDir = direction.includes('HIGHER') ? 'upward' : direction.includes('LOWER') ? 'downward' : 'neutral';
+    
+    const reasons = [];
+    
+    // Direction match
+    if (impactDir === currentDir) {
+      reasons.push(`Both events show ${impactDir} demand pressure, indicating a similar grid stress pattern.`);
+    } else if (impactDir !== 'neutral' && currentDir !== 'neutral') {
+      reasons.push(`While this historical event showed ${impactDir} pressure (${impact > 0 ? '+' : ''}${impact}%), the current anomaly trends ${currentDir} — the AI matched on seasonal and contextual similarity.`);
+    }
+    
+    // Severity context
+    const sevMap = { 'CRITICAL': 'extreme', 'HIGH': 'significant', 'MEDIUM': 'moderate', 'LOW': 'minor' };
+    const sevWord = sevMap[event.severity] || 'notable';
+    reasons.push(`This ${sevWord}-severity historical event provides calibration for the AI's risk assessment during the ${regime.toLowerCase()} period.`);
+
+    // Region context
+    if (event.grid_region) {
+      reasons.push(`Occurred in the ${event.grid_region} region, within the same interconnection as the current analysis.`);
+    }
+
+    return reasons.join(' ');
+  }
+
+  return (
+    <section className="similarity-section glass-card" style={{ padding: '32px', marginBottom: '24px' }}>
+      <div className="similarity-header">
+        <div>
+          <h3 className="card-title" style={{ marginBottom: '4px' }}>
+            Historical Event Memory
+          </h3>
+          <p className="chart-help" style={{ marginBottom: 0 }}>
+            The RAG retriever searched the vector database for events semantically similar to the current anomaly pattern. Below are the historical precedents the AI used to calibrate its recommendation.
+          </p>
+        </div>
+      </div>
+      
+      {/* Semantic Query Used */}
+      <div className="similarity-query-box">
+        <span className="similarity-query-label">Semantic Search Query</span>
+        <code className="similarity-query-text">{query || `${direction.toLowerCase().replace('_', ' ')} magnitude ${magnitude.toFixed(0)}% ${regime.toLowerCase()} season`}</code>
+      </div>
+
+      {/* Event Match Cards */}
+      <div className="similarity-grid">
+        {events.map((event, i) => {
+          const sevClass = `sev-${(event.severity || 'medium').toLowerCase()}`;
+          return (
+            <div key={i} className="similarity-card">
+              <div className="similarity-card-header">
+                <div className="similarity-card-title">
+                  <strong>{event.event_type}</strong>
+                  <span className={`sev ${sevClass}`}>{event.severity}</span>
+                </div>
+                <div className="similarity-card-meta">
+                  <span className="impact">{parseFloat(event.demand_impact_pct) > 0 ? '+' : ''}{event.demand_impact_pct}% impact</span>
+                  {event.grid_region && <span className="impact">{event.grid_region}</span>}
+                </div>
+              </div>
+              
+              <p className="similarity-card-desc">{event.description}</p>
+              
+              <div className="similarity-basis">
+                <span className="similarity-basis-label">
+                  <i className="dot" style={{ width: '6px', height: '6px', background: 'var(--accent-cyan)', display: 'inline-block', marginRight: '6px' }} />
+                  Why This Matched
+                </span>
+                <p className="similarity-basis-text">{getSimilarityReason(event)}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Connection to current analysis */}
+      <div className="similarity-summary">
+        <i className="dot emerald" style={{ width: '8px', height: '8px', marginRight: '10px', marginTop: '4px', flexShrink: 0 }} />
+        <span>
+          The AI identified <strong>{events.length} historical precedent{events.length !== 1 ? 's' : ''}</strong> matching 
+          the current {regime.toLowerCase()}-period {direction.toLowerCase().replace('_', ' ')} divergence of {magnitude.toFixed(1)}%. 
+          These events informed the final {(result.trading_mandate?.recommendation || 'MAINTAIN OPS').toUpperCase()} recommendation.
+        </span>
+      </div>
+    </section>
   );
 }
 
@@ -356,7 +660,7 @@ function ExecutionTrace({ trace = [] }) {
           const info = nodeInfo[node] || { label: node, type: 'math', desc: 'Executed standard operation.' };
           return (
             <React.Fragment key={i}>
-              {i > 0 && <div className="trace-arrow">→</div>}
+              {i > 0 && <div className="trace-arrow">&rarr;</div>}
               <div className={`trace-node trace-${info.type}`}>
                 <div className="trace-header">
                   <span className="trace-num">NODE {String(i + 1).padStart(2, '0')}</span>
@@ -381,12 +685,19 @@ function summarize(r, horizon) {
   const cW = num(r.chronos_wape), sW = num(r.sarima_wape);
   const better = cW <= sW;
   const level = sev >= (r.severity_threshold || 0.4) ? 'Elevated' : 'Standard';
+  
+  // Plain-English explainer for non-domain users
+  const explainer = better
+    ? `In plain terms: our AI predicted electricity demand for the next ${horizon} days and was ${Math.abs((cW - sW) * 100).toFixed(1)} percentage points more accurate than the traditional statistical model.`
+    : `In plain terms: the traditional statistical model was slightly more accurate on this ${horizon}-day window, which can happen when demand follows very predictable seasonal patterns.`;
+
   return {
     rec,
     recClass,
     sevText: sev >= (r.severity_threshold || 0.4) ? 'HIGH' : 'LOW',
     headline: `${level} grid volatility detected over the ${horizon}-day horizon.`,
     subtext: `The deep learning model ${better ? 'outperformed' : 'trailed'} the statistical baseline by ${Math.abs((cW - sW) * 100).toFixed(2)} percentage points.`,
+    explainer,
     plain: `The algorithmic severity score computed to ${(sev * 100).toFixed(0)}%. ${sev < (r.severity_threshold || 0.4) ? 'This falls below the designated action threshold; the system advises maintaining current positions.' : 'This exceeds the designated action threshold; the system mandates strategic portfolio adjustment.'}`,
   };
 }

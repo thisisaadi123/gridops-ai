@@ -5,6 +5,14 @@ export const DEMO_RESULT = {
   sarima_backtest_wape: 0.1365,
   interval_sharpness: 0.0001,
   anomaly_severity_score: 0.22,
+  severity_threshold: 0.40,
+  divergence_direction: 'CHRONOS_LOWER',
+  variance_magnitude_pct: 9.09,
+  historical_data: [
+    32100, 31800, 31500, 31200, 30500, 29800, 31000, 32500, 33500, 34500,
+    35200, 35000, 34200, 33500, 33000, 32200, 31800, 32000, 33500, 34800,
+    35500, 36200, 37500, 38100, 39000, 38500, 37800, 38200, 39000, 39500,
+  ],
   forecast_dates: [
     '2018-07-05','2018-07-06','2018-07-07','2018-07-08','2018-07-09',
     '2018-07-10','2018-07-11','2018-07-12','2018-07-13','2018-07-14',
@@ -64,9 +72,11 @@ export const DEMO_RESULT = {
   },
   mandate_narrative: 'Maintain standard grid operations. The AI has confidently rejected a false demand spike predicted by the classical baseline.',
   variance_report: 'DIVERGENCE ANALYSIS REPORT\n==========================\nDirection: CHRONOS_LOWER | Magnitude: 9.09%\nSARIMA WAPE: 0.0811 | Chronos WAPE: 0.0779 | Delta: 0.0032 (Chronos wins)\nSARIMA Rolling Backtest WAPE: 0.1365\nInterval Sharpness Score: 0.000100\nAnomaly Severity Score: 0.2180 / 1.0\n\nInterpretation: Models are in reasonable agreement. Standard forecast uncertainty applies.',
+  rag_query_used: 'energy demand chronos lower magnitude 9 percent summer season grid load anomaly PJM',
   retrieved_events: [
-    { event_type: 'Summer load spike', severity: 'MEDIUM', demand_impact_pct: '+7.4', description: 'High humidity and elevated cooling load produced a short PJM demand spike.' },
-    { event_type: 'Forecast divergence', severity: 'LOW', demand_impact_pct: '+3.1', description: 'Statistical baseline overestimated weekend demand while a sequence model tracked cooling-load behavior.' },
+    { event_type: 'Summer load spike', severity: 'MEDIUM', demand_impact_pct: '+7.4', description: 'High humidity and elevated cooling load produced a short PJM demand spike.', grid_region: 'PJM-East' },
+    { event_type: 'Forecast divergence', severity: 'LOW', demand_impact_pct: '+3.1', description: 'Statistical baseline overestimated weekend demand while a sequence model tracked cooling-load behavior.', grid_region: 'PJM-West' },
+    { event_type: 'SARIMA overshoot correction', severity: 'LOW', demand_impact_pct: '-2.8', description: 'Classical model projected a false demand ramp during a mild July weekend; foundation model correctly predicted stable load.', grid_region: 'PJM-System' },
   ],
   seasonal_demand_pattern: 'This is a summer forecast window. Electricity use is mostly driven by cooling demand. Hot days can create sharp peaks, while mild weekends can pull demand down quickly.',
   seasonal_risk_factor: 'Watch weather changes. A heat wave would make the high side of the forecast more important.',

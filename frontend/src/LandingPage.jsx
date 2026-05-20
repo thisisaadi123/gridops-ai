@@ -183,26 +183,46 @@ function Step3Pipeline() {
       </div>
 
       <div className="pipeline-visual">
-        <PipelineNode num="1" name="Data Validator" type="math"
-          desc="Circuit breaker. Validates data integrity by checking for missing values, sufficient historical length, and extreme variance. Halts execution safely if data is corrupt." />
+        <PipelineNode 
+          num="1" name="Data Validator" type="math"
+          desc="Circuit breaker. Validates data integrity by checking for missing values, sufficient historical length, and extreme variance. Halts execution safely if data is corrupt."
+          importance="Prevents the AI from reasoning on corrupted data — a single missing month could cause a false anomaly signal."
+          example="If mean load drops below 1,000 MW (impossible for a real grid), the node halts execution to prevent bad trades."
+        />
         
         <div className="pipeline-fork">
           <div className="pipeline-branch">
-            <PipelineNode num="2A" name="Divergence Analyst" type="math"
-              desc="Executes a differential analysis comparing the deterministic SARIMA trajectory against the probabilistic Chronos median. Synthesizes divergence magnitude, WAPE improvement, and interval sharpness into a standardized composite Severity Score (0.0 - 1.0) to quantify structural anomalies." />
+            <PipelineNode 
+              num="2A" name="Divergence Analyst" type="math"
+              desc="Executes a differential analysis comparing the deterministic SARIMA trajectory against the probabilistic Chronos median. Synthesizes divergence magnitude, WAPE improvement, and interval sharpness into a standardized composite Severity Score (0.0 - 1.0) to quantify structural anomalies."
+              importance="This is the mathematical core — it produces the single number that determines the entire pipeline's behavior."
+              example="If SARIMA says 42,000 MW and Chronos says 35,000 MW, that 20% gap drives a high severity score."
+            />
           </div>
           <div className="pipeline-parallel-label">Parallel Execution</div>
           <div className="pipeline-branch">
-            <PipelineNode num="2B" name="Seasonality Detector" type="llm"
-              desc="Leverages a Large Language Model (Groq) to cross-reference the numerical forecast with expected physical grid conditions. Identifies the prevailing operational regime (e.g., transitional shoulder months) to contextualize the severity of the anomaly." />
+            <PipelineNode 
+              num="2B" name="Seasonality Detector" type="llm"
+              desc="Leverages a Large Language Model (Groq) to cross-reference the numerical forecast with expected physical grid conditions. Identifies the prevailing operational regime (e.g., transitional shoulder months) to contextualize the severity of the anomaly."
+              importance="A 5% model divergence in summer (AC load) means something very different than in spring (mild weather)."
+              example="During summer, even small divergences matter because grid stress is already elevated."
+            />
           </div>
         </div>
         
-        <PipelineNode num="3" name="RAG Retriever" type="rag"
-          desc="Queries a ChromaDB Vector Database to retrieve historical grid events (e.g., severe weather, infrastructure failures) that semantically match the current anomaly pattern." />
+        <PipelineNode 
+          num="3" name="RAG Retriever" type="rag"
+          desc="Queries a ChromaDB Vector Database to retrieve historical grid events (e.g., severe weather, infrastructure failures) that semantically match the current anomaly pattern."
+          importance="Without historical memory, the AI would treat every anomaly as novel — historical precedent provides calibration."
+          example="If today's pattern matches the 2014 Polar Vortex buildup, the AI can recommend preemptive action."
+        />
         
-        <PipelineNode num="4" name="Risk Quantifier" type="math"
-          desc="Computes an empirical Value-at-Risk (VaR) profile. By analyzing the delta between the upper (p90) and lower (p10) quantile bounds, it translates the deep learning model's probabilistic uncertainty into definitive upside/downside Megawatt exposure." />
+        <PipelineNode 
+          num="4" name="Risk Quantifier" type="math"
+          desc="Computes an empirical Value-at-Risk (VaR) profile. By analyzing the delta between the upper (p90) and lower (p10) quantile bounds, it translates the deep learning model's probabilistic uncertainty into definitive upside/downside Megawatt exposure."
+          importance="Translates abstract model uncertainty into concrete MW exposure that operators can act on."
+          example='"Downside risk: 6,000 MW" means demand could drop that far below the median forecast.'
+        />
         
         <div className="pipeline-gate">
           <div className="gate-label">
@@ -212,12 +232,20 @@ function Step3Pipeline() {
           </div>
           <div className="gate-branches">
             <div className="gate-yes">
-              <PipelineNode num="5A" name="Strategy Formulator" type="llm"
-                desc="Triggered when Severity ≥ Threshold. Functions as the primary grid adjustment engine. Synthesizes the VaR profile, historical RAG context, and seasonal risks to formulate a high-conviction INCREASE GENERATION or DEPLOY RESERVES mandate, complete with precise capacity sizing." />
+              <PipelineNode 
+                num="5A" name="Strategy Formulator" type="llm"
+                desc="Triggered when Severity ≥ Threshold. Functions as the primary grid adjustment engine. Synthesizes the VaR profile, historical RAG context, and seasonal risks to formulate a high-conviction INCREASE GENERATION or DEPLOY RESERVES mandate, complete with precise capacity sizing."
+                importance="The synthesis node — it combines all mathematical, seasonal, and historical signals into one actionable decision."
+                example="Produces the final 'INCREASE GENERATION' or 'DEPLOY RESERVES' mandate with capacity sizing."
+              />
             </div>
             <div className="gate-no">
-              <PipelineNode num="5B" name="Conservative Advisory" type="llm"
-                desc="Triggered when Severity < Threshold. Acts as the system's risk-mitigation circuit breaker. Classifies the minor forecast divergence as standard market stochasticity and mandates a strict HOLD to preserve capital." />
+              <PipelineNode 
+                num="5B" name="Conservative Advisory" type="llm"
+                desc="Triggered when Severity < Threshold. Acts as the system's risk-mitigation circuit breaker. Classifies the minor forecast divergence as standard market stochasticity and mandates a strict HOLD to preserve capital."
+                importance="Acts as a safety valve — prevents the system from overreacting to normal market noise."
+                example="When severity is below threshold, it issues MAINTAIN OPS to avoid unnecessary cost."
+              />
             </div>
           </div>
         </div>
@@ -272,17 +300,32 @@ function Step4Intelligence() {
 
         <div className="intelligence-side">
           <h3 className="card-title">Historical Event Memory (RAG)</h3>
-          <p className="muted-text" style={{marginBottom: '24px'}}>
-            Node 3 queries a local <strong>ChromaDB</strong> vector database containing records of actual PJM grid events. 
-            If the current data signature matches the buildup to a historical disruption (e.g., the 2014 Polar Vortex), the LLM is provided that historical context to recommend appropriate protective action.
+          <p className="muted-text" style={{marginBottom: '16px'}}>
+            The AI doesn't just look at numbers — it remembers what happened last time similar patterns appeared on the grid. Node 3 queries a <strong>ChromaDB</strong> vector database containing records of actual grid events.
           </p>
-          <div style={{ padding: '20px', background: 'rgba(6, 182, 212, 0.05)', borderRadius: '8px', border: '1px solid rgba(6, 182, 212, 0.2)' }}>
-            <h4 style={{ fontSize: '15px', color: 'var(--text-primary)', marginBottom: '8px' }}>Manage Database</h4>
-            <p className="muted-text" style={{ marginBottom: '16px', fontSize: '13px' }}>
-              You can inject hypothetical or historical grid events into the database via the Event Database view. The AI will immediately utilize these new embeddings during the next execution.
-            </p>
-            <p className="muted-text" style={{ fontSize: '13px' }}>
-              <em>Access the Event Database from the top navigation bar.</em>
+          
+          <div className="rag-flow-visual">
+            <div className="rag-step"><span>1</span> Current Anomaly Detected</div>
+            <div className="rag-arrow">↓</div>
+            <div className="rag-step"><span>2</span> Semantic Embedding Generation</div>
+            <div className="rag-arrow">↓</div>
+            <div className="rag-step"><span>3</span> Vector Search in ChromaDB</div>
+            <div className="rag-arrow">↓</div>
+            <div className="rag-step"><span>4</span> Match with Historical Context</div>
+          </div>
+          
+          <div className="rag-examples">
+            <h5>How it influences the AI:</h5>
+            <p><strong>Example A:</strong> If the current divergence matches the signature of the 2014 Polar Vortex, the AI will recommend preemptive action rather than waiting for failure.</p>
+            <p><strong>Example B:</strong> If the pattern matches a mild, harmless summer load spike, the AI will issue a "MAINTAIN OPS" advisory, knowing it's not a critical threat.</p>
+          </div>
+
+          <div style={{ padding: '16px', background: 'rgba(6, 182, 212, 0.05)', borderRadius: '8px', border: '1px solid rgba(6, 182, 212, 0.2)', marginTop: '24px' }}>
+            <h4 style={{ fontSize: '14px', color: 'var(--text-primary)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Manage Database
+            </h4>
+            <p className="muted-text" style={{ marginBottom: '12px', fontSize: '13px' }}>
+              You can inject hypothetical or historical grid events into the database via the <strong>Event Database</strong> view. The AI will immediately utilize these new embeddings during the next execution.
             </p>
           </div>
         </div>
@@ -291,15 +334,39 @@ function Step4Intelligence() {
   );
 }
 
-function PipelineNode({ num, name, type, desc }) {
+function PipelineNode({ num, name, type, desc, importance, example }) {
+  const [expanded, setExpanded] = useState(false);
+  
+  const typeLabels = {
+    'math': 'Algorithm',
+    'llm': 'LLM (Groq)',
+    'rag': 'Vector DB'
+  };
+
   return (
     <div className={`pipe-node pipe-${type}`}>
       <div className="pipe-header">
         <span className="pipe-num">{num}</span>
         <strong>{name}</strong>
-        <span className={`pipe-type type-${type}`}>{type === 'math' ? 'Algorithm' : type === 'llm' ? 'LLM (Groq)' : 'Vector DB'}</span>
+        <span className={`pipe-type type-${type}`}>{typeLabels[type]}</span>
       </div>
       <p className="pipe-body">{desc}</p>
+      
+      {importance && example && (
+        <details className="node-detail-expandable" open={expanded} onToggle={(e) => setExpanded(e.target.open)}>
+          <summary>Learn More</summary>
+          <div className="node-detail-content">
+            <div className="node-detail-section">
+              <h6>Why it matters</h6>
+              <p>{importance}</p>
+            </div>
+            <div className="node-detail-section">
+              <h6>Example</h6>
+              <p><em>{example}</em></p>
+            </div>
+          </div>
+        </details>
+      )}
     </div>
   );
 }
