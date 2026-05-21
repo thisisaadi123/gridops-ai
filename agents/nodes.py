@@ -349,8 +349,12 @@ def strategy_formulator_node(state: GridOpsState) -> dict:
     mandate = json.loads(raw_json, strict=False)
 
     # Build readable narrative summary
+    rationale = mandate.get('rationale', '')
+    if isinstance(rationale, list):
+        rationale = "\n\n".join(rationale)
+
     mandate_narrative = (
-        f"{mandate.get('rationale', '')}\n\n"
+        f"{rationale}\n\n"
         f"**Contract Phase**: {mandate.get('contract_type', 'N/A')}\n"
         f"**Stop Loss Trigger**: {mandate.get('stop_loss_trigger', 'N/A')}\n"
         f"**Risk Factors**: {', '.join(mandate.get('risk_factors', []))}"
@@ -415,8 +419,12 @@ def conservative_advisory_node(state: GridOpsState) -> dict:
     raw_json = raw_json.replace("```json", "").replace("```", "").strip()
     mandate = json.loads(raw_json, strict=False)
 
+    advisory_note = mandate.get('advisory_note', '')
+    if isinstance(advisory_note, list):
+        advisory_note = "\n\n".join(advisory_note)
+        
     mandate_narrative = (
-        f"{mandate.get('advisory_note', '')}\n\n"
+        f"{advisory_note}\n\n"
         f"Re-evaluation trigger: {mandate.get('re_evaluation_trigger', 'N/A')}"
     )
 

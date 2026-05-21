@@ -88,7 +88,13 @@ Similar conditions have occurred before on the PJME grid:
 Now issue your operational mandate as a JSON object with EXACTLY these keys:
 
 {{
-  "reasoning_trace": "Write a massive, exhaustive internal monologue (5-6 paragraphs). Ruthlessly interrogate the numbers. Break down exactly how the divergence between Chronos and SARIMA impacts your physical grid view. Cross-reference the severity score with the interval sharpness. Analyze the historical precedents deeply. This is your analytical scratchpad.",
+  "reasoning_trace": [
+    "Write a massive, exhaustive internal monologue here. Paragraph 1: Ruthlessly interrogate the numbers.",
+    "Paragraph 2: Break down exactly how the divergence between Chronos and SARIMA impacts your physical grid view.",
+    "Paragraph 3: Cross-reference the severity score with the interval sharpness.",
+    "Paragraph 4: Analyze the historical precedents deeply.",
+    "Paragraph 5: Final conclusions for your analytical scratchpad."
+  ],
 
   "recommendation": "INCREASE GENERATION" | "DEPLOY RESERVES" | "MAINTAIN OPS",
 
@@ -112,7 +118,12 @@ Now issue your operational mandate as a JSON object with EXACTLY these keys:
     "Event 3: Write an authoritative 2-3 sentence analysis. Detail the physics of the past event, then connect it to the current forecast. Do not use filler."
   ],
 
-  "rationale": "Write an EXTENSIVE, highly detailed control room briefing (4-5 long paragraphs). Use as many tokens as necessary to build a complete narrative.\n\nCRITICAL RULES:\n1. If you mention ANY metric (Model Divergence, Severity, WAPE), you MUST seamlessly weave its true mathematical and operational meaning into the sentence. \n2. BAD EXAMPLE: 'We have a 2.1% Model Divergence, meaning the models disagree.' (This explains nothing and is robotic).\n3. GOOD EXAMPLE: 'The 2.1% Model Divergence reveals that our deep learning Chronos model is detecting a non-linear load pattern that the traditional SARIMA statistical baseline missed.'\n4. Thoroughly explain the WHY behind your decision. Deconstruct the physical risks.\n\nSTRICT NEGATIVE CONSTRAINTS:\nNEVER start with 'The data shows', 'The models are currently indicating', or 'Based on the analysis'. Start immediately with the physical grid reality (e.g., 'We are holding operations steady because...').",
+  "rationale": [
+    "Write an EXTENSIVE, highly detailed control room briefing. Paragraph 1: Start immediately with the physical grid reality (e.g., 'We are holding operations steady because...').",
+    "Paragraph 2: If you mention ANY metric (Model Divergence, Severity, WAPE), you MUST seamlessly weave its true mathematical and operational meaning into the sentence. (e.g., 'The 2.1% Model Divergence reveals that our deep learning Chronos model is detecting a non-linear load pattern that the traditional SARIMA statistical baseline missed.')",
+    "Paragraph 3: Thoroughly explain the WHY behind your decision. Deconstruct the physical risks.",
+    "Paragraph 4: Additional operational context and mandate clarification."
+  ],
 
   "stop_loss_trigger": "One specific, observable physical event that would immediately invalidate this mandate.",
 
@@ -160,7 +171,12 @@ signal would change your recommendation.
 Issue your advisory as a JSON object with EXACTLY these keys:
 
 {{
-  "reasoning_trace": "Write a massive, exhaustive internal monologue (4-5 paragraphs). Ruthlessly interrogate the numbers. Break down exactly how the divergence between Chronos and SARIMA impacts your physical grid view. Explain why the severity score does not justify action. This is your analytical scratchpad.",
+  "reasoning_trace": [
+    "Write a massive, exhaustive internal monologue here. Paragraph 1: Ruthlessly interrogate the numbers.",
+    "Paragraph 2: Break down exactly how the divergence between Chronos and SARIMA impacts your physical grid view.",
+    "Paragraph 3: Explain why the severity score does not justify action.",
+    "Paragraph 4: Final conclusions for your analytical scratchpad."
+  ],
 
   "recommendation": "MAINTAIN OPS",
 
@@ -180,7 +196,12 @@ Issue your advisory as a JSON object with EXACTLY these keys:
     "Event 3: Write an authoritative 2-3 sentence analysis. Detail the physics of the past event, then connect it to the current forecast. Do not use filler."
   ],
 
-  "advisory_note": "Write an EXTENSIVE, highly detailed control room briefing (4-5 long paragraphs). Use as many tokens as necessary to build a complete, authoritative narrative.\n\nCRITICAL RULES:\n1. If you mention ANY metric (Model Divergence, Severity, Thresholds), you MUST seamlessly weave its true mathematical and operational meaning into the sentence.\n2. BAD EXAMPLE: 'We have a 2.1% Model Divergence, meaning the models disagree.' (This is robotic and explains nothing).\n3. GOOD EXAMPLE: 'The 2.1% Model Divergence reveals that our deep learning Chronos model is detecting a non-linear load pattern that the traditional SARIMA statistical baseline missed.'\n4. Explicitly explain what 'low confidence' means physically (e.g., the models cannot agree on the direction of the load). Explain exactly why the threshold is not met.\n\nSTRICT NEGATIVE CONSTRAINTS:\nNEVER start with 'The models are currently indicating', 'The Model Divergence suggests', or 'As a result'. NEVER use generic AI transition phrases. Start immediately with physical grid reality.",
+  "advisory_note": [
+    "Write an EXTENSIVE, highly detailed control room briefing. Paragraph 1: Start immediately with physical grid reality. NEVER start with 'The models are currently indicating', 'The Model Divergence suggests', or 'As a result'.",
+    "Paragraph 2: If you mention ANY metric (Model Divergence, Severity, Thresholds), you MUST seamlessly weave its true mathematical and operational meaning into the sentence. (e.g., 'The 2.1% Model Divergence reveals that our deep learning Chronos model is detecting a non-linear load pattern that the traditional SARIMA statistical baseline missed.')",
+    "Paragraph 3: Explicitly explain what 'low confidence' means physically (e.g., the models cannot agree on the direction of the load). Explain exactly why the threshold is not met.",
+    "Paragraph 4: Additional operational context and final guidance."
+  ],
 
   "re_evaluation_trigger": "One specific observable condition — a weather event, a demand reading, a model convergence threshold — that would trigger re-evaluation.",
 
