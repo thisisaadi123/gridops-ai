@@ -27,14 +27,14 @@ export function Dashboard({ result, elapsed, onNew, onExport, horizon }) {
       {/* Top Ticker Row: Metrics */}
       <div className="ticker-row" style={{ marginBottom: '24px' }}>
         <Metric label="SARIMA Baseline Error" value={pct(result.sarima_wape)}
-          help="Accuracy of the traditional statistical model. Lower is better." />
+          help="The error margin of the traditional statistical model over the forecast horizon. A lower percentage indicates a more accurate baseline." />
         <Metric label="Chronos AI Error" value={pct(result.chronos_wape)}
-          help={`The deep learning model's error rate. ${num(result.chronos_wape) <= num(result.sarima_wape) ? 'It outperformed the baseline.' : 'The baseline was more accurate on this run.'}`}
+          help={`The error margin of the deep learning model. ${num(result.chronos_wape) <= num(result.sarima_wape) ? 'A lower percentage means the AI outperformed the baseline.' : 'The baseline was more accurate on this run.'}`}
           tone={num(result.chronos_wape) <= num(result.sarima_wape) ? 'good' : 'bad'} />
         <Metric label="Historical Backtest" value={pct(result.sarima_backtest_wape)}
-          help="Average SARIMA error across three rolling test windows. Measures consistency." />
+          help="The baseline model's average error when tested against historical grid data. This validates the reliability of the baseline." />
         <Metric label="AI Forecast Confidence" value={`${result.trading_mandate?.confidence_score || 0}%`}
-          help="How confident the AI agent is in its recommendation, based on model agreement and severity." />
+          help="The AI's conviction level for active grid intervention. A low score means the grid is stable (maintain ops). A high score indicates severe instability." />
       </div>
 
       {/* Top: Execution Panel (Horizontal) */}
