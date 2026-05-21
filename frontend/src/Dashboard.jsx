@@ -219,16 +219,39 @@ function FullChart({ result, zoom, showHistory }) {
     'Z'
   ].join(' ');
 
-  // Series for legend
   const seriesLegend = [
     { name: 'Actual Demand', color: '#ffffff' },
     { name: 'SARIMA Baseline', color: '#f59e0b' },
     { name: 'Chronos (p50)', color: '#38bdf8' },
   ];
 
+  const [hoverIdx, setHoverIdx] = useState(null);
+  const [hoverPos, setHoverPos] = useState({ x: 0, y: 0, w: 1000 });
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const rx = (e.clientX - rect.left) / rect.width * W;
+    if (rx < pad.l - 20 || rx > W - pad.r + 20) {
+      setHoverIdx(null);
+      return;
+    }
+    let idx = Math.round((rx - pad.l) / (W - pad.l - pad.r) * (totalLen - 1));
+    idx = Math.max(0, Math.min(totalLen - 1, idx));
+    setHoverIdx(idx);
+    setHoverPos({ x: e.clientX - rect.left, y: e.clientY - rect.top, w: rect.width });
+  };
+
   return (
-    <div className="svg-chart-container" style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
-      <svg className="svg-chart" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-label="Full Timeline Chart" style={{ width: '100%', height: '100%', display: 'block' }}>
+    <div className="svg-chart-container" style={{ width: '100%', height: '100%', overflow: 'visible', position: 'relative' }}>
+      <svg 
+        className="svg-chart" 
+        viewBox={`0 0 ${W} ${H}`} 
+        preserveAspectRatio="none" 
+        aria-label="Full Timeline Chart" 
+        style={{ width: '100%', height: '100%', display: 'block' }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => setHoverIdx(null)}
+      >
         <rect x="0" y="0" width={W} height={H} rx="12" className="chart-bg" />
 
         {/* Historical region background tint */}
@@ -307,7 +330,61 @@ function FullChart({ result, zoom, showHistory }) {
            <rect x="0" y="-4" width="16" height="8" fill="rgba(56, 189, 248, 0.15)" stroke="rgba(56, 189, 248, 0.3)" />
            <text x="22" y="4" className="legend-text" style={{ fontSize: '11px' }}>80% Band</text>
         </g>
+        {/* Hover Highlight Line */}
+        {hoverIdx !== null && (
+          <line 
+            x1={x(hoverIdx)} x2={x(hoverIdx)} 
+            y1={pad.t} y2={H - pad.b} 
+            stroke="rgba(255,255,255,0.4)" 
+            strokeWidth="1" 
+            strokeDasharray="4 4" 
+            pointerEvents="none"
+          />
+        )}
       </svg>
+
+      {/* HTML Tooltip */}
+      {hoverIdx !== null && (
+        <div style={{
+          position: 'absolute',
+          left: hoverPos.x < hoverPos.w * 0.6 ? hoverPos.x + 15 : 'auto',
+          right: hoverPos.x >= hoverPos.w * 0.6 ? hoverPos.w - hoverPos.x + 15 : 'auto',
+          top: Math.max(10, hoverPos.y - 15),
+          background: 'rgba(15, 23, 42, 0.95)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          padding: '12px',
+          borderRadius: '8px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          backdropFilter: 'blur(8px)',
+          color: 'white',
+          fontSize: '12px',
+          pointerEvents: 'none',
+          zIndex: 100,
+          minWidth: '150px'
+        }}>
+          <div style={{ color: 'var(--text-secondary)', marginBottom: '8px', fontWeight: 'bold' }}>
+            {shortDate(combinedLabels[hoverIdx])}
+          </div>
+          {combinedActual[hoverIdx] !== null && combinedActual[hoverIdx] !== undefined && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', margin: '4px 0' }}>
+              <span style={{ color: '#ffffff' }}>Actual:</span>
+              <strong style={{ marginLeft: '12px' }}>{Math.round(combinedActual[hoverIdx]).toLocaleString()} MW</strong>
+            </div>
+          )}
+          {combinedSarima[hoverIdx] !== null && combinedSarima[hoverIdx] !== undefined && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', margin: '4px 0' }}>
+              <span style={{ color: '#f59e0b' }}>SARIMA:</span>
+              <strong style={{ marginLeft: '12px' }}>{Math.round(combinedSarima[hoverIdx]).toLocaleString()} MW</strong>
+            </div>
+          )}
+          {combinedChronos[hoverIdx] !== null && combinedChronos[hoverIdx] !== undefined && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', margin: '4px 0' }}>
+              <span style={{ color: '#38bdf8' }}>Chronos:</span>
+              <strong style={{ marginLeft: '12px' }}>{Math.round(combinedChronos[hoverIdx]).toLocaleString()} MW</strong>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -367,9 +444,33 @@ function SvgChart({ series, labels = [], band = null, tall = false, zoom = false
     ...[...band.lo].reverse().map((v, ri) => `L ${x(band.lo.length - 1 - ri, band.lo.length)} ${y(v)}`), 'Z'
   ].join(' ') : '';
 
+  const [hoverIdx, setHoverIdx] = useState(null);
+  const [hoverPos, setHoverPos] = useState({ x: 0, y: 0, w: 500 });
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const rx = (e.clientX - rect.left) / rect.width * W;
+    if (rx < pad.l - 20 || rx > W - pad.r + 20) {
+      setHoverIdx(null);
+      return;
+    }
+    let idx = Math.round((rx - pad.l) / (W - pad.l - pad.r) * (longest - 1));
+    idx = Math.max(0, Math.min(longest - 1, idx));
+    setHoverIdx(idx);
+    setHoverPos({ x: e.clientX - rect.left, y: e.clientY - rect.top, w: rect.width });
+  };
+
   return (
-    <div className="svg-chart-container" style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
-      <svg className="svg-chart" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-label="Forecast Chart" style={{ width: '100%', height: '100%', display: 'block' }}>
+    <div className="svg-chart-container" style={{ width: '100%', height: '100%', overflow: 'visible', position: 'relative' }}>
+      <svg 
+        className="svg-chart" 
+        viewBox={`0 0 ${W} ${H}`} 
+        preserveAspectRatio="none" 
+        aria-label="Forecast Chart" 
+        style={{ width: '100%', height: '100%', display: 'block' }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => setHoverIdx(null)}
+      >
         
         <rect x="0" y="0" width={W} height={H} rx="12" className="chart-bg" />
         
@@ -417,7 +518,54 @@ function SvgChart({ series, labels = [], band = null, tall = false, zoom = false
              <text x="22" y="4" className="legend-text" style={{ fontSize: '11px' }}>80% Band</text>
           </g>
         )}
+        
+        {/* Hover Highlight Line */}
+        {hoverIdx !== null && (
+          <line 
+            x1={x(hoverIdx, longest)} x2={x(hoverIdx, longest)} 
+            y1={pad.t} y2={H - pad.b} 
+            stroke="rgba(255,255,255,0.4)" 
+            strokeWidth="1" 
+            strokeDasharray="4 4" 
+            pointerEvents="none"
+          />
+        )}
       </svg>
+      
+      {/* HTML Tooltip */}
+      {hoverIdx !== null && (
+        <div style={{
+          position: 'absolute',
+          left: hoverPos.x < hoverPos.w * 0.55 ? hoverPos.x + 15 : 'auto',
+          right: hoverPos.x >= hoverPos.w * 0.55 ? hoverPos.w - hoverPos.x + 15 : 'auto',
+          top: Math.max(10, hoverPos.y - 15),
+          background: 'rgba(15, 23, 42, 0.95)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          padding: '12px',
+          borderRadius: '8px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          backdropFilter: 'blur(8px)',
+          color: 'white',
+          fontSize: '12px',
+          pointerEvents: 'none',
+          zIndex: 100,
+          minWidth: '150px'
+        }}>
+          <div style={{ color: 'var(--text-secondary)', marginBottom: '8px', fontWeight: 'bold' }}>
+            {shortDate(labels[hoverIdx]) || `Point ${hoverIdx}`}
+          </div>
+          {series.map(s => {
+            const val = s.data[hoverIdx];
+            if (val === undefined || val === null) return null;
+            return (
+              <div key={s.name} style={{ display: 'flex', justifyContent: 'space-between', margin: '4px 0' }}>
+                <span style={{ color: s.color }}>{s.name}:</span>
+                <strong style={{ marginLeft: '12px' }}>{Math.round(val).toLocaleString()} MW</strong>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

@@ -10,7 +10,9 @@ import './styles.css';
 const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 function App() {
-  const [screen, setScreen] = useState('landing');
+  const [screen, setScreen] = useState('coldstart'); // start with cold-start check
+  const [coldStartElapsed, setColdStartElapsed] = useState(0);
+  const [coldStartResolved, setColdStartResolved] = useState(false);
   const [threshold, setThreshold] = useState(0.40);
   const [horizon, setHorizon] = useState(30);
   const [health, setHealth] = useState({ api: 'checking', redis: 'checking', celery: 'checking' });
@@ -26,7 +28,10 @@ function App() {
 
   const checkHealth = useCallback(async () => {
     try {
-      const r = await fetch(`${API}/health`);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      const r = await fetch(`${API}/health`, { signal: controller.signal });
+      clearTimeout(timeout);
       if (!r.ok) throw new Error();
       const d = await r.json();
       setHealth({
@@ -34,17 +39,44 @@ function App() {
         redis: d.redis || 'disconnected',
         celery: d.celery || 'disconnected',
       });
+      // If we were in cold-start, transition to landing now
+      if (!coldStartResolved) {
+        setColdStartResolved(true);
+        setScreen('landing');
+      }
+      return true;
     } catch {
       setHealth({ api: 'disconnected', redis: 'disconnected', celery: 'disconnected' });
+      return false;
     }
+  }, [coldStartResolved]);
+
+  // On first load: check if server is up. If not, show cold-start screen.
+  useEffect(() => {
+    const initialCheck = async () => {
+      const ok = await checkHealth();
+      if (!ok) {
+        setScreen('coldstart');
+      }
+    };
+    initialCheck();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Initial health check + auto-refresh every 15s
+  // Cold-start: retry health check every 5 seconds + run elapsed timer
   useEffect(() => {
-    checkHealth();
+    if (screen !== 'coldstart') return;
+    const retryIv = setInterval(checkHealth, 5000);
+    const elapsedIv = setInterval(() => setColdStartElapsed(p => p + 1), 1000);
+    return () => { clearInterval(retryIv); clearInterval(elapsedIv); };
+  }, [screen, checkHealth]);
+
+  // Normal 15-second health refresh once live
+  useEffect(() => {
+    if (screen === 'coldstart') return;
     const iv = setInterval(checkHealth, 15000);
     return () => clearInterval(iv);
-  }, [checkHealth]);
+  }, [screen, checkHealth]);
 
   useEffect(() => {
     if (!taskId || screen !== 'running') return;
@@ -145,6 +177,10 @@ function App() {
         onEvents={viewEvents}
       />
       
+      {screen === 'coldstart' && (
+        <ColdStartScreen elapsed={coldStartElapsed} />
+      )}
+
       {screen === 'landing' && (
         <LandingPage
           threshold={threshold} setThreshold={setThreshold}
@@ -288,3 +324,98 @@ function StatusModal({ health, onClose, onRefresh }) {
 }
 
 createRoot(document.getElementById('root')).render(<App />);
+
+/* ── Cold Start Screen ── */
+function ColdStartScreen({ elapsed }) {
+  const BOOT_STEPS = [
+    { label: 'Starting Docker container',          duration: 15 },
+    { label: 'Installing Python environment',       duration: 40 },
+    { label: 'Loading Chronos-T5 model weights',   duration: 90 },
+    { label: 'Starting Celery task worker',         duration: 110 },
+    { label: 'Service ready',                       duration: 999 },
+  ];
+
+  // Figure out which step we're on based on elapsed seconds
+  let stepIdx = 0;
+  for (let i = 0; i < BOOT_STEPS.length - 1; i++) {
+    if (elapsed >= BOOT_STEPS[i].duration) stepIdx = i + 1;
+  }
+
+  return (
+    <div className="progress-page animation-fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+      <div style={{ marginBottom: '32px' }}>
+        <h1 className="loading-title" style={{ fontSize: '30px', marginBottom: '12px' }}>
+          Service is warming up...
+        </h1>
+        <p className="loading-subtitle" style={{ maxWidth: '540px', margin: '0 auto 12px auto' }}>
+          This app runs on a free Hugging Face Space. Free spaces go to sleep automatically
+          after 48 hours of inactivity to save resources.
+        </p>
+        <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', maxWidth: '480px', margin: '0 auto', lineHeight: 1.6 }}>
+          The server needs to boot up, load the 200M parameter AI model into memory, and start
+          the task queue. This typically takes <strong style={{ color: 'var(--text-secondary)' }}>90 – 120 seconds</strong>.
+          Once warmed up, the service stays live for 48 hours — subsequent visitors see no wait.
+        </p>
+      </div>
+
+      <div style={{ width: '100%', maxWidth: '500px' }}>
+        <div className="spinner" style={{ margin: '0 auto 32px auto' }} />
+
+        {/* Boot steps */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', textAlign: 'left', marginBottom: '28px' }}>
+          {BOOT_STEPS.map((step, i) => {
+            const isDone = i < stepIdx;
+            const isActive = i === stepIdx;
+            const isPending = i > stepIdx;
+            return (
+              <div key={step.label} style={{
+                display: 'flex', alignItems: 'center', gap: '14px',
+                padding: '12px 16px', borderRadius: '8px',
+                background: isActive ? 'rgba(6,182,212,0.07)' : isDone ? 'rgba(16,185,129,0.05)' : 'rgba(255,255,255,0.02)',
+                border: `1px solid ${isActive ? 'rgba(6,182,212,0.2)' : isDone ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.05)'}`,
+                transition: 'all 0.4s ease',
+              }}>
+                <div style={{
+                  width: '18px', height: '18px', borderRadius: '50%', flexShrink: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: isActive ? 'rgba(6,182,212,0.12)' : isDone ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.04)',
+                  border: `2px solid ${isActive ? 'var(--accent-cyan)' : isDone ? '#10b981' : 'rgba(255,255,255,0.1)'}`,
+                }}>
+                  {isDone && (
+                    <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+                      <polyline points="1,4.5 3.5,7 8,1.5" stroke="#10b981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                  {isActive && <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--accent-cyan)', boxShadow: '0 0 6px rgba(6,182,212,0.8)' }} />}
+                </div>
+                <span style={{
+                  fontSize: '13px',
+                  color: isActive ? 'var(--accent-cyan)' : isDone ? '#10b981' : 'var(--text-tertiary)',
+                  fontWeight: isActive || isDone ? 600 : 400,
+                }}>
+                  {step.label}
+                </span>
+                {isActive && (
+                  <span style={{ marginLeft: 'auto', fontSize: '11px', color: 'var(--text-tertiary)', fontFamily: "'JetBrains Mono', monospace" }}>
+                    in progress…
+                  </span>
+                )}
+                {isDone && (
+                  <span style={{ marginLeft: 'auto', fontSize: '11px', color: '#10b981' }}>Done</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Elapsed timer */}
+        <div style={{ fontSize: '22px', fontFamily: '"JetBrains Mono", monospace', color: 'var(--accent-cyan)', fontWeight: 'bold', marginBottom: '6px' }}>
+          {Math.floor(elapsed / 60)}:{(elapsed % 60).toString().padStart(2, '0')}
+        </div>
+        <div style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>
+          Checking server status every 5 seconds…
+        </div>
+      </div>
+    </div>
+  );
+}

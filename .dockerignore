@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.mypy_cache/
+venv/
+.venv/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+
+# Frontend (built separately on Vercel)
+frontend/
+node_modules/
+
+# Tests & dev scripts (not needed in production container)
+tests/
+locustfile.py
+scripts/run_dev.sh
+scripts/stop_dev.sh
+scripts/train_chronos_mac.py
+scripts/verify_finetuned_model.py
+
+# ML Models (downloaded at boot via entrypoint)
+models/
+
+# Logs
+*.log
+logs/
+load_report.html
+
+# Docker
+Dockerfile
+docker-compose.yml
