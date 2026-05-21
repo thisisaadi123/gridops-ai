@@ -97,12 +97,12 @@ def divergence_analyst_node(state: GridOpsState) -> dict:
 
     # Anomaly severity score (0.0 to 1.0):
     # Combines three signals — model divergence, WAPE improvement, and band width
-    wape_delta = max(0, state["sarima_wape"] - state["chronos_wape"])  # higher = Chronos is better
+    wape_delta = max(0, (state.get("sarima_wape") or 0) - (state.get("chronos_wape") or 0))  # higher = Chronos is better
     wape_signal = min(wape_delta / 0.1, 1.0)                           # normalize to 0-1
 
     divergence_signal = min(abs_variance_pct / 20.0, 1.0)              # >20% divergence = max signal
 
-    sharpness = state.get("interval_sharpness", 0)
+    sharpness = state.get("interval_sharpness") or 0
     sharpness_signal = min(sharpness / 0.001, 1.0)                     # normalize
 
     anomaly_severity_score = (
