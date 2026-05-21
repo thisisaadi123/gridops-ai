@@ -360,16 +360,33 @@ def strategy_formulator_node(state: GridOpsState) -> dict:
     raw_json = raw_json.replace("```json", "").replace("```", "").strip()
     mandate = json.loads(raw_json, strict=False)
 
-    # Build readable narrative summary
-    rationale = mandate.get('rationale', '')
-    if isinstance(rationale, list):
-        rationale = "\n\n".join(rationale)
+    # Build static mathematical rationale paragraphs
+    sarima_mw = state.get("sarima_mean_mw", 0)
+    chronos_mw = state.get("chronos_mean_mw", 0)
+    var_mag = state.get("variance_magnitude_pct", 0)
+    
+    p1 = f"Model Divergence measures the average relative difference between the two forecast models. It indicates whether the AI and the classical statistics agree on where demand is heading. The divergence is computed as mean(|{chronos_mw:,.0f} − {sarima_mw:,.0f}| / {sarima_mw:,.0f}) × 100, which yields {var_mag:.2f}%. This gap is driven by {'structural grid anomalies' if var_mag >= 5.0 else 'standard seasonal noise and model variance'}."
+    
+    sev = state.get("anomaly_severity_score", 0)
+    thresh = state.get("severity_threshold", 0.40)
+    p2 = f"The Anomaly Severity Score combines three independent signals into a single 0-to-1 risk indicator. It serves as the master decision signal for whether to take operational action. The final severity score is {sev:.2f}. Since this score is {'above' if sev >= thresh else 'below'} the {thresh:.2f} action threshold, {'reserve deployment is warranted' if sev >= thresh else 'no reserve deployment is warranted'}."
+    
+    p3 = f"WAPE (Weighted Absolute Percentage Error) measures how far off each model's predictions are from actual demand. A lower WAPE indicates a more accurate forecast. The SARIMA baseline has a WAPE of {sarima_wape:.2%}, while the Chronos AI has a WAPE of {chronos_wape:.2%}. This confirms the deep learning model is {wape_delta_description}."
+    
+    rr = state.get("risk_reward_ratio", 0)
+    p4 = f"The p10 and p90 scenarios represent tail-risk bounds for potential demand outcomes. They help operators understand the worst-case physical scenarios. The p10 downside risk is {state.get('downside_var_mw', 0):,.0f} MW, while the p90 upside risk is {state.get('upside_var_mw', 0):,.0f} MW. The Risk/Reward ratio of {rr:.2f} indicates {'upside risk exceeds downside' if rr > 1.0 else 'downside risk exceeds upside'}."
+    
+    quantitative_rationale = "\n\n".join([p1, p2, p3, p4])
+    
+    # Get the LLM summary
+    summary_rationale = mandate.get('summary_rationale', '')
 
     static_intro = "The GridOps AI pipeline has analyzed the current 14-day forecast window. Below is the operational assessment of the predictive models."
 
     mandate_narrative = (
         f"{static_intro}\n\n"
-        f"{rationale}\n\n"
+        f"{quantitative_rationale}\n\n"
+        f"**Summary**: {summary_rationale}\n\n"
         f"Re-evaluation trigger: {mandate.get('re_evaluation_trigger', 'N/A')}"
     )
 
@@ -437,15 +454,36 @@ def conservative_advisory_node(state: GridOpsState) -> dict:
     raw_json = raw_json.replace("```json", "").replace("```", "").strip()
     mandate = json.loads(raw_json, strict=False)
 
-    advisory_note = mandate.get('advisory_note', '')
-    if isinstance(advisory_note, list):
-        advisory_note = "\n\n".join(advisory_note)
-        
+    # Build static mathematical rationale paragraphs
+    sarima_mw = state.get("sarima_mean_mw", 0)
+    chronos_mw = state.get("chronos_mean_mw", 0)
+    var_mag = state.get("variance_magnitude_pct", 0)
+    sarima_wape = state.get("sarima_wape", 0)
+    chronos_wape = state.get("chronos_wape", 0)
+    wape_delta = abs(sarima_wape - chronos_wape)
+    wape_desc = f"outperforming baseline by {wape_delta:.2%}" if chronos_wape < sarima_wape else f"underperforming baseline by {wape_delta:.2%}"
+    
+    p1 = f"Model Divergence measures the average relative difference between the two forecast models. It indicates whether the AI and the classical statistics agree on where demand is heading. The divergence is computed as mean(|{chronos_mw:,.0f} − {sarima_mw:,.0f}| / {sarima_mw:,.0f}) × 100, which yields {var_mag:.2f}%. This gap is driven by {'structural grid anomalies' if var_mag >= 5.0 else 'standard seasonal noise and model variance'}."
+    
+    sev = state.get("anomaly_severity_score", 0)
+    thresh = state.get("severity_threshold", 0.40)
+    p2 = f"The Anomaly Severity Score combines three independent signals into a single 0-to-1 risk indicator. It serves as the master decision signal for whether to take operational action. The final severity score is {sev:.2f}. Since this score is {'above' if sev >= thresh else 'below'} the {thresh:.2f} action threshold, {'reserve deployment is warranted' if sev >= thresh else 'no reserve deployment is warranted'}."
+    
+    p3 = f"WAPE (Weighted Absolute Percentage Error) measures how far off each model's predictions are from actual demand. A lower WAPE indicates a more accurate forecast. The SARIMA baseline has a WAPE of {sarima_wape:.2%}, while the Chronos AI has a WAPE of {chronos_wape:.2%}. This confirms the deep learning model is {wape_desc}."
+    
+    rr = state.get("risk_reward_ratio", 0)
+    p4 = f"The p10 and p90 scenarios represent tail-risk bounds for potential demand outcomes. They help operators understand the worst-case physical scenarios. The p10 downside risk is {state.get('downside_var_mw', 0):,.0f} MW, while the p90 upside risk is {state.get('upside_var_mw', 0):,.0f} MW. The Risk/Reward ratio of {rr:.2f} indicates {'upside risk exceeds downside' if rr > 1.0 else 'downside risk exceeds upside'}."
+    
+    quantitative_rationale = "\n\n".join([p1, p2, p3, p4])
+    
+    summary_rationale = mandate.get('summary_rationale', '')
+
     static_intro = "The GridOps AI pipeline has analyzed the current 14-day forecast window. Below is the operational assessment of the predictive models."
 
     mandate_narrative = (
         f"{static_intro}\n\n"
-        f"{advisory_note}\n\n"
+        f"{quantitative_rationale}\n\n"
+        f"**Summary**: {summary_rationale}\n\n"
         f"Re-evaluation trigger: {mandate.get('re_evaluation_trigger', 'N/A')}"
     )
 

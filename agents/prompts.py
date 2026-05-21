@@ -66,15 +66,7 @@ QUALITY RULES — VIOLATIONS WILL BE REJECTED:
 - The historical_analysis array must reference each retrieved event BY NAME 
   (the event_type), state what physically happened, and explain specifically 
   why that precedent supports or contradicts today's forecast.
-- Write naturally as a senior grid engineer. Dense, expert-level analysis only.
-
-METRIC EXPLANATION RULE — for EVERY mathematical term you mention (WAPE, 
-Model Divergence, Anomaly Severity Score, Risk/Reward Ratio, p10, p90, 
-Sharpness, etc.) you MUST explain it using exactly 4 distinct sentences in a single paragraph. Do NOT write a massive run-on sentence. Use a period after each part:
-  1. Definition: Write exactly one sentence explaining what this metric is in plain English.
-  2. Significance: Write exactly one sentence explaining what it physically means for the grid.
-  3. Calculation: Write exactly one sentence showing the exact math with actual numbers.
-  4. Interpretation: Write exactly one sentence concluding what the stakeholder should do."""
+- Write naturally as a senior operations director. Dense, expert-level analysis only."""
 
 
 STRATEGY_HUMAN = """
@@ -126,13 +118,7 @@ Now issue your operational mandate as a JSON object with EXACTLY these keys (no 
     "Same structure for event 3. Each entry must be unique — never repeat analysis from another entry."
   ],
 
-  "rationale": [
-    "Model Divergence: Define what it is, explain why it matters, show the actual calculation using the average MW values, and state if it is actionable or noise.",
-    "Anomaly Severity Score: Define it as our master signal. State the final score provided in the data. Explain conceptually that it combines divergence, accuracy, and sharpness, but DO NOT write out the math equation. Conclude what the score means against our {threshold} threshold.",
-    "WAPE: Define it as our accuracy metric, state the values for both models, and state which model is winning and by how much.",
-    "Risk: Define p10 and p90 tail scenarios, state their actual MW values, calculate the Risk/Reward ratio, and conclude if we should deploy reserves or hold.",
-    "Mandate: state your final operational decision in one crisp sentence."
-  ],
+  "summary_rationale": "A 1-paragraph summary explaining the final recommendation and the 'why' in plain English for the control room operators.",
 
   "re_evaluation_trigger": "One specific observable physical condition that would trigger re-evaluation."
 }}
@@ -157,15 +143,7 @@ QUALITY RULES — VIOLATIONS WILL BE REJECTED:
 - The historical_analysis array must reference each retrieved event BY NAME 
   (the event_type), state what physically happened, and explain specifically 
   why that precedent supports holding operations.
-- Write naturally as a senior risk analyst. Dense, expert-level analysis only.
-
-METRIC EXPLANATION RULE — for EVERY mathematical term you mention (WAPE, 
-Model Divergence, Anomaly Severity Score, Sharpness, etc.) you MUST explain 
-it using exactly 4 distinct sentences in a single paragraph. Do NOT write a massive run-on sentence. Use a period after each part:
-  1. Definition: Write exactly one sentence explaining what this metric is in plain English.
-  2. Significance: Write exactly one sentence explaining what it physically means for the grid.
-  3. Calculation: Write exactly one sentence showing the exact math with actual numbers.
-  4. Interpretation: Write exactly one sentence concluding what the stakeholder should do."""
+- Write naturally as a senior risk analyst. Dense, expert-level analysis only."""
 
 
 CONSERVATIVE_ADVISORY_HUMAN = """
@@ -215,12 +193,7 @@ Issue your advisory as a JSON object with EXACTLY these keys (no extra keys):
     "Same structure for event 3. Each entry must be unique."
   ],
 
-  "advisory_note": [
-    "Model Divergence: (a) Define what Model Divergence is in plain English. (b) Explain why a stakeholder should care. (c) Show the formula: mean(|Chronos_MW − SARIMA_MW| / SARIMA_MW) × 100 and plug in actual average MW values to show how {variance_magnitude_pct:.1f}% was derived. (d) State whether this level of divergence warrants action.",
-    "Anomaly Severity Score: (a) Define what it is. (b) Explain it is the master decision signal. (c) State the final score of {anomaly_severity_score:.2f} but DO NOT write out the math equation. (d) Tell the stakeholder we are below the {threshold} threshold so no action is needed.",
-    "Confidence: explain what low confidence physically means — the models disagree on load direction, which makes any operational change risky. Explain why the score of {anomaly_severity_score:.2f} is below the {threshold} threshold and what a stakeholder should take away from this.",
-    "Decision: state that we are holding current operations in one sentence. Do not repeat anything from above."
-  ],
+  "summary_rationale": "A 1-paragraph summary explaining the final recommendation (MAINTAIN OPS) and the 'why' in plain English for the control room operators, citing the low confidence and threshold.",
 
   "re_evaluation_trigger": "One specific observable condition that would trigger re-evaluation."
 }}
