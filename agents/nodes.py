@@ -331,9 +331,16 @@ def strategy_formulator_node(state: GridOpsState) -> dict:
     
     p1 = f"Model Divergence measures the average relative difference between the two forecast models. It indicates whether the AI and the classical statistics agree on where demand is heading. The divergence is computed as mean(|{chronos_mw:,.0f} − {sarima_mw:,.0f}| / {sarima_mw:,.0f}) × 100, which yields {var_mag:.2f}%. This gap is driven by {'structural grid anomalies' if var_mag >= 5.0 else 'standard seasonal noise and model variance'}."
     
+    sarima_wape = state.get("sarima_wape") or 0
+    chronos_wape = state.get("chronos_wape") or 0
+    sharpness = state.get("interval_sharpness") or 0
+    
+    div_signal = min(var_mag / 6.0, 1.0)
+    wape_signal = min(max(0, sarima_wape - chronos_wape) / 0.03, 1.0)
+    sharp_signal = min(sharpness / 0.001, 1.0)
     sev = state.get("anomaly_severity_score", 0)
     thresh = state.get("severity_threshold", 0.40)
-    p2 = f"The Anomaly Severity Score combines three independent signals into a single 0-to-1 risk indicator. It serves as the master decision signal for whether to take operational action. The final severity score is {sev:.2f}. Since this score is {'above' if sev >= thresh else 'below'} the {thresh:.2f} action threshold, {'reserve deployment is warranted' if sev >= thresh else 'no reserve deployment is warranted'}."
+    p2 = f"The Anomaly Severity Score combines three independent signals into a single 0-to-1 risk indicator. It serves as the master decision signal for whether to take operational action. The formula is: (0.40 × {div_signal:.2f} Divergence) + (0.35 × {wape_signal:.2f} WAPE Delta) + (0.25 × {sharp_signal:.2f} Sharpness) = {sev:.2f}. Since this score is {'above' if sev >= thresh else 'below'} the {thresh:.2f} action threshold, {'reserve deployment is warranted' if sev >= thresh else 'no reserve deployment is warranted'}."
     
     p3 = f"WAPE (Weighted Absolute Percentage Error) measures how far off each model's predictions are from actual demand. A lower WAPE indicates a more accurate forecast. The SARIMA baseline has a WAPE of {sarima_wape:.2%}, while the Chronos AI has a WAPE of {chronos_wape:.2%}. This confirms the deep learning model is {wape_delta_description}."
     
@@ -428,9 +435,13 @@ def conservative_advisory_node(state: GridOpsState) -> dict:
     
     p1 = f"Model Divergence measures the average relative difference between the two forecast models. It indicates whether the AI and the classical statistics agree on where demand is heading. The divergence is computed as mean(|{chronos_mw:,.0f} − {sarima_mw:,.0f}| / {sarima_mw:,.0f}) × 100, which yields {var_mag:.2f}%. This gap is driven by {'structural grid anomalies' if var_mag >= 5.0 else 'standard seasonal noise and model variance'}."
     
+    sharpness = state.get("interval_sharpness", 0)
+    div_signal = min(var_mag / 6.0, 1.0)
+    wape_signal = min(max(0, sarima_wape - chronos_wape) / 0.03, 1.0)
+    sharp_signal = min(sharpness / 0.001, 1.0)
     sev = state.get("anomaly_severity_score", 0)
     thresh = state.get("severity_threshold", 0.40)
-    p2 = f"The Anomaly Severity Score combines three independent signals into a single 0-to-1 risk indicator. It serves as the master decision signal for whether to take operational action. The final severity score is {sev:.2f}. Since this score is {'above' if sev >= thresh else 'below'} the {thresh:.2f} action threshold, {'reserve deployment is warranted' if sev >= thresh else 'no reserve deployment is warranted'}."
+    p2 = f"The Anomaly Severity Score combines three independent signals into a single 0-to-1 risk indicator. It serves as the master decision signal for whether to take operational action. The formula is: (0.40 × {div_signal:.2f} Divergence) + (0.35 × {wape_signal:.2f} WAPE Delta) + (0.25 × {sharp_signal:.2f} Sharpness) = {sev:.2f}. Since this score is {'above' if sev >= thresh else 'below'} the {thresh:.2f} action threshold, {'reserve deployment is warranted' if sev >= thresh else 'no reserve deployment is warranted'}."
     
     p3 = f"WAPE (Weighted Absolute Percentage Error) measures how far off each model's predictions are from actual demand. A lower WAPE indicates a more accurate forecast. The SARIMA baseline has a WAPE of {sarima_wape:.2%}, while the Chronos AI has a WAPE of {chronos_wape:.2%}. This confirms the deep learning model is {wape_desc}."
     

@@ -98,6 +98,37 @@ export function Dashboard({ result, elapsed, onNew, onExport, horizon }) {
         </div>
       </div>
 
+      {/* Individual Model Charts */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px', marginBottom: '24px' }}>
+        <div className="chart-card glass-card" style={{ position: 'relative', padding: '24px', display: 'flex', flexDirection: 'column' }}>
+          <h3 className="card-title" style={{ margin: 0, fontSize: '18px' }}>Chronos Deep Learning Forecast</h3>
+          <p className="chart-help" style={{ margin: '4px 0 16px 0' }}>AI prediction showing p50 estimate and p10/p90 risk bands.</p>
+          <div style={{ flex: 1, minHeight: '260px' }}>
+            <FullChart 
+              result={result}
+              zoom={zoom}
+              showHistory={showHistory}
+              showSarima={false}
+              showChronos={true}
+            />
+          </div>
+        </div>
+
+        <div className="chart-card glass-card" style={{ position: 'relative', padding: '24px', display: 'flex', flexDirection: 'column' }}>
+          <h3 className="card-title" style={{ margin: 0, fontSize: '18px' }}>SARIMA Statistical Baseline</h3>
+          <p className="chart-help" style={{ margin: '4px 0 16px 0' }}>Classical statistics forecast based on auto-regressive moving average.</p>
+          <div style={{ flex: 1, minHeight: '260px' }}>
+            <FullChart 
+              result={result}
+              zoom={zoom}
+              showHistory={showHistory}
+              showSarima={true}
+              showChronos={false}
+            />
+          </div>
+        </div>
+      </div>
+
       <StakeholderSummary result={result} horizon={horizon} />
       <AnalysisTabs result={result} />
 
@@ -112,7 +143,7 @@ export function Dashboard({ result, elapsed, onNew, onExport, horizon }) {
 }
 
 /* ── Full Chart with Historical Context ── */
-function FullChart({ result, zoom, showHistory }) {
+function FullChart({ result, zoom, showHistory, showSarima = true, showChronos = true }) {
   const histData = nums(result.historical_data || []);
   const forecastActual = nums(result.holdout_data);
   const forecastSarima = nums(result.sarima_forecast);
@@ -122,17 +153,16 @@ function FullChart({ result, zoom, showHistory }) {
   const forecastDates = result.forecast_dates || [];
 
   if (!showHistory || histData.length === 0) {
-    // Original forecast-only view
+    const series = [{ name: 'Actual Demand', data: forecastActual, color: '#ffffff', w: 1.5 }];
+    if (showSarima) series.push({ name: 'SARIMA Baseline', data: forecastSarima, color: '#f59e0b', w: 1.5 });
+    if (showChronos) series.push({ name: 'Chronos (p50)', data: forecastChronos, color: '#38bdf8', w: 2 });
+    
     return (
       <SvgChart 
         zoom={zoom}
-        series={[
-          { name: 'Actual Demand', data: forecastActual, color: '#ffffff', w: 1.5 },
-          { name: 'SARIMA Baseline', data: forecastSarima, color: '#f59e0b', w: 1.5 },
-          { name: 'Chronos (p50)', data: forecastChronos, color: '#38bdf8', w: 2 },
-        ]} 
+        series={series} 
         labels={forecastDates} 
-        band={{ lo: bandLo, hi: bandHi }} 
+        band={showChronos ? { lo: bandLo, hi: bandHi } : null} 
       />
     );
   }
@@ -166,9 +196,12 @@ function FullChart({ result, zoom, showHistory }) {
 
   // Scale calculations
   const allVals = combinedActual.filter(v => v !== null);
-  const fcValsForScale = zoom 
-    ? [...forecastActual, ...forecastSarima, ...forecastChronos]
-    : [...forecastActual, ...forecastSarima, ...forecastChronos, ...bandLo, ...bandHi];
+  let fcValsForScale = [...forecastActual];
+  if (showSarima) fcValsForScale.push(...forecastSarima);
+  if (showChronos) {
+    fcValsForScale.push(...forecastChronos);
+    if (!zoom) fcValsForScale.push(...bandLo, ...bandHi);
+  }
   const allForScale = [...allVals, ...fcValsForScale];
   
   let rawMn = Math.min(...allForScale);
@@ -193,8 +226,8 @@ function FullChart({ result, zoom, showHistory }) {
   
   // Forecast paths (start from divider)
   const fcActualPath = forecastActual.map((v, i) => `${i === 0 ? 'M' : 'L'} ${x(histLen + i)} ${y(v)}`).join(' ');
-  const fcSarimaPath = forecastSarima.map((v, i) => `${i === 0 ? 'M' : 'L'} ${x(histLen + i)} ${y(v)}`).join(' ');
-  const fcChronosPath = forecastChronos.map((v, i) => `${i === 0 ? 'M' : 'L'} ${x(histLen + i)} ${y(v)}`).join(' ');
+  const fcSarimaPath = showSarima ? forecastSarima.map((v, i) => `${i === 0 ? 'M' : 'L'} ${x(histLen + i)} ${y(v)}`).join(' ') : '';
+  const fcChronosPath = showChronos ? forecastChronos.map((v, i) => `${i === 0 ? 'M' : 'L'} ${x(histLen + i)} ${y(v)}`).join(' ') : '';
 
   // Connection line from last historical to first forecast actual
   const connectionPath = `M ${x(histLen - 1)} ${y(histData[histLen - 1])} L ${x(histLen)} ${y(forecastActual[0])}`;
@@ -207,10 +240,10 @@ function FullChart({ result, zoom, showHistory }) {
   ].join(' ');
 
   const seriesLegend = [
-    { name: 'Actual Demand', color: '#ffffff' },
-    { name: 'SARIMA Baseline', color: '#f59e0b' },
-    { name: 'Chronos (p50)', color: '#38bdf8' },
+    { name: 'Actual Demand', color: '#ffffff' }
   ];
+  if (showSarima) seriesLegend.push({ name: 'SARIMA Baseline', color: '#f59e0b' });
+  if (showChronos) seriesLegend.push({ name: 'Chronos (p50)', color: '#38bdf8' });
 
   const [hoverIdx, setHoverIdx] = useState(null);
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0, w: 1000 });

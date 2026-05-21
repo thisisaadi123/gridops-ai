@@ -56,7 +56,7 @@ Output a JSON object with EXACTLY these keys:
     "Briefly explain how event 2 informs today's decision.",
     "Briefly explain how event 3 informs today's decision."
   ],
-  "summary_rationale": "A single clear paragraph summarizing the final recommendation and why it was chosen based on the quantitative data.",
+  "summary_rationale": "A single, authoritative, punchy paragraph (max 3 sentences) summarizing the final recommendation and why it was chosen based on the quantitative data. Avoid run-on sentences.",
   "re_evaluation_trigger": "One observable condition to trigger re-evaluation."
 }}
 """
@@ -93,7 +93,7 @@ Output a JSON object with EXACTLY these keys:
     "Briefly explain how event 2 supports maintaining operations.",
     "Briefly explain how event 3 supports maintaining operations."
   ],
-  "summary_rationale": "A single clear paragraph summarizing why we are maintaining operations, citing the low confidence and risk factors.",
+  "summary_rationale": "A single, authoritative, punchy paragraph (max 3 sentences) explaining why we are maintaining operations. Avoid run-on sentences. Cite the low severity score and explain that the risk factors do not justify deploying reserves.",
   "re_evaluation_trigger": "One observable condition to trigger re-evaluation."
 }}
 """
