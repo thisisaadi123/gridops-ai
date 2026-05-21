@@ -48,10 +48,11 @@ streamlit==1.36.0
 plotly==5.22.0
 
 # === Testing & Typing ===
-pytest==8.2.2
+pytest==8.3.5
 pytest-asyncio==0.23.7
 pytest-mock==3.14.0
 types-requests==2.32.0.20240622
+locust==2.44.0
 
 # Chronos local inference
 chronos-forecasting==1.4.0
