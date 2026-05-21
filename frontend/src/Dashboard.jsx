@@ -98,7 +98,7 @@ export function Dashboard({ result, elapsed, onNew, onExport, horizon }) {
         </div>
       </div>
 
-      <StakeholderSummary result={result} />
+      <StakeholderSummary result={result} horizon={horizon} />
       <AnalysisTabs result={result} />
 
       {/* Historical Event Similarity Section */}
@@ -759,7 +759,7 @@ function DivergenceTab({ result }) {
 }
 
 // SummaryTab removed – replaced by StakeholderSummary below
-function StakeholderSummary({ result }) {
+function StakeholderSummary({ result, horizon }) {
   const s = summarize(result, horizon);
   return (
     <section className="stakeholder-summary glass-card" style={{ padding: '24px', marginBottom: '24px' }}>
@@ -771,7 +771,7 @@ function StakeholderSummary({ result }) {
   );
 }
 
-function SummaryTab({ result }) {
+function SeasonalityTab({ result }) {
   return (
     <div>
       <div className="tab-context">
