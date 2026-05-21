@@ -48,6 +48,9 @@ export function ProgressScreen({ progress }) {
         <p className="loading-subtitle" style={{ maxWidth: '520px', margin: '0 auto' }}>
           {currentInfo.description}
         </p>
+        <div style={{ marginTop: '12px', fontSize: '14px', color: 'var(--accent-amber)', fontFamily: "'JetBrains Mono', monospace", fontWeight: 600 }}>
+          ETA: 1.5 – 2.5 minutes
+        </div>
       </div>
 
       <div className="spinner-container" style={{ minHeight: 'auto', padding: '0 0 40px 0', width: '100%', maxWidth: '560px' }}>
