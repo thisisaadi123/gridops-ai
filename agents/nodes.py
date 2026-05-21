@@ -305,11 +305,20 @@ def strategy_formulator_node(state: GridOpsState) -> dict:
         )
     rag_context_formatted = "\n".join(rag_lines) if rag_lines else "No similar events retrieved."
 
+    sarima_wape = state.get("sarima_wape") or 0
+    chronos_wape = state.get("chronos_wape") or 0
+    wape_delta_description = (
+        f"outperforming baseline by {abs(sarima_wape - chronos_wape):.2%}"
+        if chronos_wape < sarima_wape
+        else f"underperforming baseline by {abs(chronos_wape - sarima_wape):.2%}"
+    )
+
     messages = [
         SystemMessage(content=STRATEGY_SYSTEM),
         HumanMessage(content=STRATEGY_HUMAN.format(
-            sarima_wape=state["sarima_wape"],
-            chronos_wape=state["chronos_wape"],
+            sarima_wape=sarima_wape,
+            chronos_wape=chronos_wape,
+            wape_delta_description=wape_delta_description,
             divergence_direction=state["divergence_direction"],
             variance_magnitude_pct=state["variance_magnitude_pct"],
             anomaly_severity_score=state["anomaly_severity_score"],
