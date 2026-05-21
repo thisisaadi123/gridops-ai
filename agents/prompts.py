@@ -70,14 +70,11 @@ QUALITY RULES — VIOLATIONS WILL BE REJECTED:
 
 METRIC EXPLANATION RULE — for EVERY mathematical term you mention (WAPE, 
 Model Divergence, Anomaly Severity Score, Risk/Reward Ratio, p10, p90, 
-Sharpness, etc.) you MUST explain it in this exact 4-part structure:
-  (a) DEFINITION: What is this metric? One sentence in plain English.
-  (b) SIGNIFICANCE: What does it physically mean for the grid? Why should a 
-      non-technical stakeholder care about this number?
-  (c) CALCULATION: Show the exact formula and plug in the actual numbers from 
-      this run. Example: "Divergence = mean(|33,893 − 41,437| / 41,437) × 100 = 9.09%"
-  (d) INTERPRETATION: What should the stakeholder conclude from this specific 
-      value? Is it good, bad, or neutral? What action (or inaction) does it support?"""
+Sharpness, etc.) you MUST explain it using these 4 components woven naturally into a single, cohesive paragraph (DO NOT use explicit labels like "(a) DEFINITION", just write a fluid paragraph):
+  1. Definition: What is this metric in plain English?
+  2. Significance: What does it physically mean for the grid?
+  3. Calculation: Show the exact math with actual numbers. Example: "Divergence is computed as mean(|33,893 − 41,437| / 41,437) × 100, which yields 9.09%."
+  4. Interpretation: What should the stakeholder conclude?"""
 
 
 STRATEGY_HUMAN = """
@@ -131,11 +128,11 @@ Now issue your operational mandate as a JSON object with EXACTLY these keys (no 
 
   "rationale": [
     "Opening: describe the physical state of the grid right now in 1-2 sentences. What is the load doing? What is the weather doing?",
-    "Math — Model Divergence: (a) Define what Model Divergence is. (b) Explain why it matters for grid stability. (c) Show the calculation: Divergence = mean(|Chronos_MW − SARIMA_MW| / SARIMA_MW) × 100, plug in the actual average MW values from the data to show how {variance_magnitude_pct:.1f}% was derived. (d) State whether this divergence level is actionable or noise.",
-    "Math — Anomaly Severity Score: (a) Define what the Anomaly Severity Score is. (b) Explain that it is the master signal that determines whether we take action. (c) Show the weighted calculation: Severity = 0.4×DivergenceSignal + 0.35×WAPEDeltaSignal + 0.25×SharpnessSignal, plug in the actual signal values to show how {anomaly_severity_score:.2f} was derived. State the threshold is 0.40. (d) Tell the stakeholder whether we are above or below the action threshold and what that means.",
-    "Math — WAPE: (a) Define WAPE (Weighted Absolute Percentage Error) as a model accuracy metric. (b) Explain that lower WAPE = more accurate forecast. (c) State the actual WAPE values for both models. (d) State which model is winning and by how much.",
-    "Risk: (a) Define p10 and p90 tail scenarios. (b) Explain why tail risk matters for reserve deployment. (c) State the actual MW values: p10 = {downside_var_mw:,.0f} MW downside, p90 = {upside_var_mw:,.0f} MW upside. (d) State the Risk/Reward ratio of {risk_reward_ratio:.2f} and whether it favors deploying reserves or holding.",
-    "Mandate: state your final operational decision in one crisp sentence. Do not restate anything from above."
+    "Model Divergence: Define what it is, explain why it matters, show the actual calculation using the average MW values, and state if it is actionable or noise.",
+    "Anomaly Severity Score: Define it as our master signal, show the weighted calculation (0.4×Div + 0.35×WAPE + 0.25×Sharpness) with actual values, and conclude what the score means against our 0.40 threshold.",
+    "WAPE: Define it as our accuracy metric, state the values for both models, and state which model is winning and by how much.",
+    "Risk: Define p10 and p90 tail scenarios, state their actual MW values, calculate the Risk/Reward ratio, and conclude if we should deploy reserves or hold.",
+    "Mandate: state your final operational decision in one crisp sentence."
   ],
 
   "re_evaluation_trigger": "One specific observable physical condition that would trigger re-evaluation."
@@ -165,11 +162,11 @@ QUALITY RULES — VIOLATIONS WILL BE REJECTED:
 
 METRIC EXPLANATION RULE — for EVERY mathematical term you mention (WAPE, 
 Model Divergence, Anomaly Severity Score, Sharpness, etc.) you MUST explain 
-it in this exact 4-part structure:
-  (a) DEFINITION: What is this metric? One sentence in plain English.
-  (b) SIGNIFICANCE: What does it physically mean for the grid?
-  (c) CALCULATION: Show the exact formula and plug in the actual numbers.
-  (d) INTERPRETATION: What should the stakeholder conclude from this value?"""
+it using these 4 components woven naturally into a single cohesive paragraph (NO explicit tags like (a) DEFINITION):
+  1. Definition: What is this metric in plain English?
+  2. Significance: What does it physically mean for the grid?
+  3. Calculation: Show the exact math with actual numbers.
+  4. Interpretation: What should the stakeholder conclude?"""
 
 
 CONSERVATIVE_ADVISORY_HUMAN = """

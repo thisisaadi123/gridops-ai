@@ -193,12 +193,18 @@ def seasonality_detector_node(state: GridOpsState) -> dict:
     else:
         seasonal_analysis = content.strip()
 
-    # Extract risk factor (first sentence for display)
-    seasonal_risk = seasonal_analysis.split(".")[0] + "."
+    # The prompt requests exactly 2 paragraphs. Split them.
+    paragraphs = [p.strip() for p in seasonal_analysis.split("\n\n") if p.strip()]
+    if len(paragraphs) >= 2:
+        seasonal_demand_pattern = paragraphs[0]
+        seasonal_risk = "\n\n".join(paragraphs[1:])
+    else:
+        seasonal_demand_pattern = seasonal_analysis
+        seasonal_risk = "See Regime Pattern Analysis for risk factors."
 
     logger.info(f"NODE 2B | Regime: {regime} | Risk: {seasonal_risk[:60]}...")
     return {
-        "seasonal_demand_pattern": seasonal_analysis,
+        "seasonal_demand_pattern": seasonal_demand_pattern,
         "seasonal_risk_factor": seasonal_risk,
         "analysis_findings": [f"Seasonal context: {regime} regime | {seasonal_risk[:80]}..."],
         "graph_execution_trace": ["seasonality_detector_node"],

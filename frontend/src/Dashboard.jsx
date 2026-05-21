@@ -18,7 +18,7 @@ export function Dashboard({ result, elapsed, onNew, onExport, horizon }) {
           <p className="subtitle">{s.subtext}</p>
           <p className="dash-explainer">{s.explainer}</p>
         </div>
-        <div className="dash-header-right">
+        <div className="dash-header-right no-print">
           <button className="btn-secondary compact" onClick={onExport} type="button">Export Forecast CSV</button>
           <button className="btn-primary compact" onClick={onNew} type="button">Run New Analysis</button>
           <button className="btn-primary compact" onClick={() => window.print()} type="button">Download Report (PDF)</button>

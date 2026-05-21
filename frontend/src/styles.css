@@ -988,3 +988,9 @@ a { color: var(--accent-cyan); text-decoration: none; }
 .animation-fade-in {
   animation: fadeIn 0.4s ease-out;
 }
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
