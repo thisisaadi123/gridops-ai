@@ -38,6 +38,8 @@ class GridOpsState(TypedDict):
     analysis_findings: Annotated[list[str], merge_lists]
 
     # === Divergence Analysis ===
+    sarima_mean_mw: float
+    chronos_mean_mw: float
     variance_magnitude_pct: float    # how much models diverge, in %
     divergence_direction: str        # CHRONOS_HIGHER / CHRONOS_LOWER / ALIGNED
     anomaly_severity_score: float    # 0.0 – 1.0, drives the risk gate

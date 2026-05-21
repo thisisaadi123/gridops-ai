@@ -994,3 +994,14 @@ a { color: var(--accent-cyan); text-decoration: none; }
     display: none !important;
   }
 }
+
+.hidden-print-show { display: none; }
+@media print {
+  .hidden-print-show { display: block !important; }
+  .tab-buttons { display: none !important; }
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    background-color: var(--bg-dark) !important;
+  }
+}

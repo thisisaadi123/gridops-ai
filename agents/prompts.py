@@ -70,11 +70,11 @@ QUALITY RULES — VIOLATIONS WILL BE REJECTED:
 
 METRIC EXPLANATION RULE — for EVERY mathematical term you mention (WAPE, 
 Model Divergence, Anomaly Severity Score, Risk/Reward Ratio, p10, p90, 
-Sharpness, etc.) you MUST explain it using these 4 components woven naturally into a single, cohesive paragraph (DO NOT use explicit labels like "(a) DEFINITION", just write a fluid paragraph):
-  1. Definition: What is this metric in plain English?
-  2. Significance: What does it physically mean for the grid?
-  3. Calculation: Show the exact math with actual numbers. Example: "Divergence is computed as mean(|33,893 − 41,437| / 41,437) × 100, which yields 9.09%."
-  4. Interpretation: What should the stakeholder conclude?"""
+Sharpness, etc.) you MUST explain it using exactly 4 distinct sentences in a single paragraph. Do NOT write a massive run-on sentence. Use a period after each part:
+  1. Definition: Write exactly one sentence explaining what this metric is in plain English.
+  2. Significance: Write exactly one sentence explaining what it physically means for the grid.
+  3. Calculation: Write exactly one sentence showing the exact math with actual numbers.
+  4. Interpretation: Write exactly one sentence concluding what the stakeholder should do."""
 
 
 STRATEGY_HUMAN = """
@@ -162,11 +162,11 @@ QUALITY RULES — VIOLATIONS WILL BE REJECTED:
 
 METRIC EXPLANATION RULE — for EVERY mathematical term you mention (WAPE, 
 Model Divergence, Anomaly Severity Score, Sharpness, etc.) you MUST explain 
-it using these 4 components woven naturally into a single cohesive paragraph (NO explicit tags like (a) DEFINITION):
-  1. Definition: What is this metric in plain English?
-  2. Significance: What does it physically mean for the grid?
-  3. Calculation: Show the exact math with actual numbers.
-  4. Interpretation: What should the stakeholder conclude?"""
+it using exactly 4 distinct sentences in a single paragraph. Do NOT write a massive run-on sentence. Use a period after each part:
+  1. Definition: Write exactly one sentence explaining what this metric is in plain English.
+  2. Significance: Write exactly one sentence explaining what it physically means for the grid.
+  3. Calculation: Write exactly one sentence showing the exact math with actual numbers.
+  4. Interpretation: Write exactly one sentence concluding what the stakeholder should do."""
 
 
 CONSERVATIVE_ADVISORY_HUMAN = """

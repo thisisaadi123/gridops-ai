@@ -709,8 +709,12 @@ function AnalysisTabs({ result }) {
         ))}
       </div>
       <div className="tab-content glass-card" style={{ padding: '32px' }}>
-        {tab === 'divergence' && <DivergenceTab result={result} />}
-        {tab === 'seasonality' && <SeasonalityTab result={result} />}
+        <div className={tab === 'divergence' ? '' : 'hidden-print-show'}>
+          <DivergenceTab result={result} />
+        </div>
+        <div className={tab === 'seasonality' ? '' : 'hidden-print-show'}>
+          <SeasonalityTab result={result} />
+        </div>
       </div>
     </section>
   );
