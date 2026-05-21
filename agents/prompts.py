@@ -58,6 +58,7 @@ Our finetuned Chronos-T5-Base foundation model has a WAPE of {chronos_wape:.2%}.
 Model comparison delta: {wape_delta_description}
 
 ─── FORECAST DIVERGENCE ─────────────────────────────
+(Model Divergence measures the percentage difference between the Chronos deep learning forecast and the SARIMA statistical baseline. High divergence means the AI detects a complex pattern that traditional math missed.)
 The two models diverge by {variance_magnitude_pct:.1f}% in the {divergence_direction} direction.
 Anomaly Severity Score: {anomaly_severity_score:.2f} / 1.00
 Interval Sharpness: {interval_sharpness:.4f} (higher = tighter confidence band)
@@ -103,6 +104,12 @@ Now issue your operational mandate as a JSON object with EXACTLY these keys:
     "3 signals, each written as a complete sentence explaining what the number means physically — not just the number"
   ],
 
+  "historical_analysis": [
+    "A 1-2 sentence explanation for Event 1 detailing exactly how and why its physical conditions compare to our current situation",
+    "A 1-2 sentence explanation for Event 2 detailing exactly how and why its physical conditions compare to our current situation",
+    "A 1-2 sentence explanation for Event 3 detailing exactly how and why its physical conditions compare to our current situation"
+  ],
+
   "rationale": "Write your control room briefing. 2-3 paragraphs. Explain: what the data is telling you about physical grid conditions right now, what specific actions operators should take and why, and why you chose this contract type over alternatives. Speak plainly — as if a shift supervisor who has not seen the raw numbers needs to understand your mandate in 60 seconds. Do not start with 'The data shows' or 'Based on the analysis'. Start with what is physically happening.",
 
   "stop_loss_trigger": "One specific, observable event that would immediately invalidate this mandate and require re-evaluation",
@@ -133,10 +140,15 @@ Anomaly Severity Score: {anomaly_severity_score:.2f} out of 1.00
 (our threshold for active positioning is 0.40 — we are below it)
 
 Model divergence: {variance_magnitude_pct:.1f}% 
-(the statistical baseline and the foundation model disagree by this much)
+(Model Divergence measures the percentage difference between the deep learning forecast and the traditional statistical baseline. A high divergence indicates the AI is detecting a complex weather or grid pattern that traditional math misses.)
 
 Chronos foundation model WAPE: {chronos_wape:.2%}
 (this measures how well our finetuned model predicted the last 30-day holdout)
+
+─── HISTORICAL PRECEDENTS ───────────────────────────
+Similar conditions have occurred before on the PJME grid:
+{rag_context_formatted}
+─────────────────────────────────────────────────────
 
 Your job: explain to the control room in plain language why we are NOT taking 
 aggressive action today, what the models are actually seeing, and what specific 
@@ -157,6 +169,12 @@ Issue your advisory as a JSON object with EXACTLY these keys:
 
   "risk_factors": [
     "3 specific reasons for low confidence written as complete sentences"
+  ],
+
+  "historical_analysis": [
+    "A 1-2 sentence explanation for Event 1 detailing exactly how and why its physical conditions compare to our current situation",
+    "A 1-2 sentence explanation for Event 2 detailing exactly how and why its physical conditions compare to our current situation",
+    "A 1-2 sentence explanation for Event 3 detailing exactly how and why its physical conditions compare to our current situation"
   ],
 
   "advisory_note": "Your control room briefing. 2-3 paragraphs in plain English. Explain what the models are seeing, why it does not yet meet the threshold for action, and what operators should continue doing. Do not just recite numbers. Translate the uncertainty into physical reality — what does a {variance_magnitude_pct:.1f}% model divergence actually mean for grid operations today? Start with what is happening, not with qualifications.",

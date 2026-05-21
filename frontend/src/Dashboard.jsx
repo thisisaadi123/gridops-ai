@@ -613,21 +613,7 @@ function HistoricalSimilarity({ result }) {
 
   if (events.length === 0) return null;
 
-  // Generate a human-readable similarity explanation for each event
-  function getSimilarityReason(event) {
-    const impact = parseFloat(event.demand_impact_pct) || 0;
-    const impactDir = impact > 0 ? 'an unexpected spike' : impact < 0 ? 'an unexpected drop' : 'a neutral shift';
-    const currentDir = direction.includes('HIGHER') ? 'spike' : direction.includes('LOWER') ? 'drop' : 'neutral';
-    
-    let reason = `The AI pulled this event from the archives because it occurred during a highly similar ${regime.toLowerCase()} weather pattern. `;
-    
-    if (impactDir.includes(currentDir)) {
-       reason += `Just like our current forecast, this past event featured ${impactDir} in electricity demand, allowing the AI to study how the grid reacted to this stress.`;
-    } else {
-       reason += `Even though this past event featured ${impactDir} (instead of our forecasted ${currentDir}), the underlying weather and grid stress conditions were nearly identical, providing a perfect test case for the AI to learn from.`;
-    }
-    return reason;
-  }
+  const historicalAnalysis = result.trading_mandate?.historical_analysis || [];
 
   return (
     <section className="similarity-section glass-card" style={{ padding: '32px', marginBottom: '24px' }}>
@@ -659,7 +645,7 @@ function HistoricalSimilarity({ result }) {
                   <i className="dot" style={{ width: '8px', height: '8px', background: 'var(--accent-cyan)', display: 'inline-block', marginRight: '8px' }} />
                   Historical Precedent
                 </span>
-                <p className="similarity-basis-text" style={{ fontSize: '14px', lineHeight: '1.6', color: 'var(--text-secondary)' }}>{getSimilarityReason(event)}</p>
+                <p className="similarity-basis-text" style={{ fontSize: '14px', lineHeight: '1.6', color: 'var(--text-secondary)' }}>{historicalAnalysis[i] || 'No specific reasoning provided by AI for this event.'}</p>
               </div>
               
               <details style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
@@ -746,7 +732,7 @@ function DivergenceTab({ result }) {
   return (
     <div>
       <div className="tab-context">
-        <strong>Context:</strong> The divergence report quantifies the exact mathematical discrepancy between the SARIMA and Chronos forecasts. High divergence mathematically signals a structural paradigm shift that classical statistics cannot model.
+        <strong>Context:</strong> Model Divergence measures the percentage difference between the Chronos deep learning forecast and the SARIMA statistical baseline. A high divergence indicates that the AI detects a complex weather or grid pattern that classical statistics missed.
       </div>
       <pre className="code-block">{result.variance_report || 'No divergence report available.'}</pre>
     </div>

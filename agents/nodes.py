@@ -380,12 +380,25 @@ def conservative_advisory_node(state: GridOpsState) -> dict:
 
     llm = _get_llm()
 
+    # Format RAG context for the prompt
+    rag_lines = []
+    for i, event in enumerate(state.get("retrieved_events", []), 1):
+        rag_lines.append(
+            f"{i}. [{event.get('event_type', 'UNKNOWN')}] "
+            f"Severity: {event.get('severity', '?')} | "
+            f"Impact: {event.get('demand_impact_pct', 0):+.1f}% | "
+            f"Region: {event.get('grid_region', '?')}\n"
+            f"   {event.get('description', '')[:120]}..."
+        )
+    rag_context_formatted = "\n".join(rag_lines) if rag_lines else "No similar events retrieved."
+
     messages = [
         SystemMessage(content=CONSERVATIVE_ADVISORY_SYSTEM),
         HumanMessage(content=CONSERVATIVE_ADVISORY_HUMAN.format(
             anomaly_severity_score=state.get("anomaly_severity_score", 0),
             variance_magnitude_pct=state.get("variance_magnitude_pct", 0),
             chronos_wape=state.get("chronos_wape", 0),
+            rag_context_formatted=rag_context_formatted,
         )),
     ]
 
