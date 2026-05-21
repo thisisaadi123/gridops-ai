@@ -126,7 +126,7 @@ class LocalChronosClient(BaseChronosClient):
         tensor = torch.tensor(context, dtype=torch.float32)
 
         quantiles, _ = self.pipeline.predict_quantiles(
-            inputs=tensor,
+            tensor,
             prediction_length=prediction_length,
             quantile_levels=[0.1, 0.5, 0.9],
         )
