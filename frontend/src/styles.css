@@ -1004,9 +1004,18 @@ a { color: var(--accent-cyan); text-decoration: none; }
 @media print {
   .hidden-print-show { display: block !important; }
   .tab-buttons { display: none !important; }
+  .tab-bar { display: none !important; }
   body {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
     background-color: var(--bg-dark) !important;
+  }
+  
+  /* Force text colors to be light/white in PDF generation to fix contrast against dark boxes */
+  .tab-context, .summary-item p {
+    color: #e2e8f0 !important;
+  }
+  .tab-context strong, .summary-item strong {
+    color: #ffffff !important;
   }
 }

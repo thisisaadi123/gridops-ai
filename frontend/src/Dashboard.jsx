@@ -391,13 +391,13 @@ function FullChart({ result, zoom, showHistory, showSarima = true, showChronos =
               <strong style={{ marginLeft: '12px' }}>{Math.round(combinedActual[hoverIdx]).toLocaleString()} MW</strong>
             </div>
           )}
-          {combinedSarima[hoverIdx] !== null && combinedSarima[hoverIdx] !== undefined && (
+          {showSarima && combinedSarima[hoverIdx] !== null && combinedSarima[hoverIdx] !== undefined && (
             <div style={{ display: 'flex', justifyContent: 'space-between', margin: '4px 0' }}>
               <span style={{ color: '#f59e0b' }}>SARIMA:</span>
               <strong style={{ marginLeft: '12px' }}>{Math.round(combinedSarima[hoverIdx]).toLocaleString()} MW</strong>
             </div>
           )}
-          {combinedChronos[hoverIdx] !== null && combinedChronos[hoverIdx] !== undefined && (
+          {showChronos && combinedChronos[hoverIdx] !== null && combinedChronos[hoverIdx] !== undefined && (
             <div style={{ display: 'flex', justifyContent: 'space-between', margin: '4px 0' }}>
               <span style={{ color: '#38bdf8' }}>Chronos:</span>
               <strong style={{ marginLeft: '12px' }}>{Math.round(combinedChronos[hoverIdx]).toLocaleString()} MW</strong>
