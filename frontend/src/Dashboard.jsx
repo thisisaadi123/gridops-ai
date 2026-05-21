@@ -59,31 +59,33 @@ export function Dashboard({ result, elapsed, onNew, onExport, horizon }) {
 
       {/* Main Immersive Chart (Full Width) — with Historical Data */}
       <div className="chart-card glass-card" style={{ position: 'relative', marginBottom: '24px', padding: '24px', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ marginBottom: '16px' }}>
-          <h3 className="card-title" style={{ margin: 0, fontSize: '20px' }}>Composite Model Analysis</h3>
-          <p className="chart-help" style={{ margin: '4px 0 0 0', maxWidth: '80%' }}>
-            {showHistory 
-              ? 'Full timeline showing historical demand followed by model forecasts. The dashed vertical line marks where history ends and predictions begin.'
-              : 'Forecast-window overlay of models against actual demand. Toggle "Show History" to see the full dataset context.'
-            }
-          </p>
-        </div>
-        
-        <div className="chart-toggle-group">
-          <button 
-            className={`chart-toggle-btn ${zoom ? 'active' : ''}`} 
-            onClick={() => setZoom(!zoom)}
-            title="Toggle Y-Axis Focus Scale"
-          >
-            {zoom ? 'Focus Scale: ON' : 'Focus Scale: OFF'}
-          </button>
-          <button 
-            className={`chart-toggle-btn ${showHistory ? 'active' : ''}`} 
-            onClick={() => setShowHistory(!showHistory)}
-            title="Toggle Historical Context"
-          >
-            {showHistory ? 'History: ON' : 'History: OFF'}
-          </button>
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', marginBottom: '16px' }}>
+          <div style={{ flex: '1 1 min-content' }}>
+            <h3 className="card-title" style={{ margin: 0, fontSize: '20px' }}>Composite Model Analysis</h3>
+            <p className="chart-help" style={{ margin: '4px 0 0 0' }}>
+              {showHistory 
+                ? 'Full timeline showing historical demand followed by model forecasts. The dashed vertical line marks where history ends and predictions begin.'
+                : 'Forecast-window overlay of models against actual demand. Toggle "Show History" to see the full dataset context.'
+              }
+            </p>
+          </div>
+          
+          <div className="chart-toggle-group" style={{ position: 'relative', top: 'auto', right: 'auto', display: 'flex', gap: '8px', zIndex: 10 }}>
+            <button 
+              className={`chart-toggle-btn ${zoom ? 'active' : ''}`} 
+              onClick={() => setZoom(!zoom)}
+              title="Toggle Y-Axis Focus Scale"
+            >
+              {zoom ? 'Focus Scale: ON' : 'Focus Scale: OFF'}
+            </button>
+            <button 
+              className={`chart-toggle-btn ${showHistory ? 'active' : ''}`} 
+              onClick={() => setShowHistory(!showHistory)}
+              title="Toggle Historical Context"
+            >
+              {showHistory ? 'History: ON' : 'History: OFF'}
+            </button>
+          </div>
         </div>
         
         <div style={{ flex: 1, minHeight: '320px' }}>
@@ -347,8 +349,8 @@ function FullChart({ result, zoom, showHistory }) {
       {hoverIdx !== null && (
         <div style={{
           position: 'absolute',
-          left: hoverPos.x < hoverPos.w * 0.6 ? hoverPos.x + 15 : 'auto',
-          right: hoverPos.x >= hoverPos.w * 0.6 ? hoverPos.w - hoverPos.x + 15 : 'auto',
+          left: hoverPos.x < hoverPos.w * 0.4 ? hoverPos.x + 15 : 'auto',
+          right: hoverPos.x >= hoverPos.w * 0.4 ? hoverPos.w - hoverPos.x + 15 : 'auto',
           top: Math.max(10, hoverPos.y - 15),
           background: 'rgba(15, 23, 42, 0.95)',
           border: '1px solid rgba(255,255,255,0.1)',
@@ -536,8 +538,8 @@ function SvgChart({ series, labels = [], band = null, tall = false, zoom = false
       {hoverIdx !== null && (
         <div style={{
           position: 'absolute',
-          left: hoverPos.x < hoverPos.w * 0.55 ? hoverPos.x + 15 : 'auto',
-          right: hoverPos.x >= hoverPos.w * 0.55 ? hoverPos.w - hoverPos.x + 15 : 'auto',
+          left: hoverPos.x < hoverPos.w * 0.4 ? hoverPos.x + 15 : 'auto',
+          right: hoverPos.x >= hoverPos.w * 0.4 ? hoverPos.w - hoverPos.x + 15 : 'auto',
           top: Math.max(10, hoverPos.y - 15),
           background: 'rgba(15, 23, 42, 0.95)',
           border: '1px solid rgba(255,255,255,0.1)',
