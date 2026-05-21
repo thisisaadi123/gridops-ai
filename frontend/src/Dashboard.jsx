@@ -598,15 +598,6 @@ function MandateCard({ result, horizontal = false }) {
       
       <div className="mandate-rationale-wrapper">
         <p className="mandate-rationale">{rationale}</p>
-        
-        <div>
-          <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', margin: '0 0 4px 0', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>
-            <i className="dot coral" style={{ width: '6px', height: '6px' }} /> Identified Risk Factors
-          </h4>
-          <ul className="risk-list" style={{ margin: 0, paddingLeft: '16px', fontSize: '12px' }}>
-            {(m.risk_factors || ['No risk factors identified.']).map((r, i) => <li key={i} style={{ marginBottom: '2px' }}>{r}</li>)}
-          </ul>
-        </div>
       </div>
     </div>
   );
