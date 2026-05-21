@@ -39,7 +39,7 @@ Write a highly detailed, authoritative 2-paragraph briefing that answers:
    state whether this signals normal seasonal noise or a structural grid anomaly.
 
 Speak strictly as a senior engineer to the control room. No preamble. No bullet points. 
-Start instantly with the physical reality on the grid.
+Start instantly with the physical reality on the grid. DO NOT hallucinate specific transmission line names, voltages (e.g. 345-kV corridors), or hardware constraints. Stick strictly to general grid dynamics and the provided data.
 """
 
 
@@ -127,9 +127,8 @@ Now issue your operational mandate as a JSON object with EXACTLY these keys (no 
   ],
 
   "rationale": [
-    "Opening: Describe the grid's current state in 1 sentence using ONLY the provided season and load data. DO NOT make up specific transmission lines, voltages, or hardware limits.",
     "Model Divergence: Define what it is, explain why it matters, show the actual calculation using the average MW values, and state if it is actionable or noise.",
-    "Anomaly Severity Score: Define it as our master signal. State the final score provided in the data. Explain conceptually that it combines divergence, accuracy, and sharpness, but DO NOT write out the math equation. Conclude what the score means against our 0.40 threshold.",
+    "Anomaly Severity Score: Define it as our master signal. State the final score provided in the data. Explain conceptually that it combines divergence, accuracy, and sharpness, but DO NOT write out the math equation. Conclude what the score means against our {threshold} threshold.",
     "WAPE: Define it as our accuracy metric, state the values for both models, and state which model is winning and by how much.",
     "Risk: Define p10 and p90 tail scenarios, state their actual MW values, calculate the Risk/Reward ratio, and conclude if we should deploy reserves or hold.",
     "Mandate: state your final operational decision in one crisp sentence."
@@ -185,7 +184,7 @@ Model Divergence: {variance_magnitude_pct:.1f}%
 
 Anomaly Severity Score: {anomaly_severity_score:.2f} out of 1.00
 (Computed as: 0.4×DivergenceSignal + 0.35×WAPEDeltaSignal + 0.25×SharpnessSignal)
-Our threshold for active operational changes is 0.40 — we are currently below it.
+Our threshold for active operational changes is {threshold} — we are currently below it.
 
 ─── SEASONAL CONTEXT ────────────────────────────────
 Season: {seasonality_regime}
@@ -217,10 +216,9 @@ Issue your advisory as a JSON object with EXACTLY these keys (no extra keys):
   ],
 
   "advisory_note": [
-    "Opening: describe what is physically happening on the grid right now. What does the load look like? Do NOT state your conclusion yet.",
-    "Math — Model Divergence: (a) Define what Model Divergence is in plain English. (b) Explain why a stakeholder should care. (c) Show the formula: mean(|Chronos_MW − SARIMA_MW| / SARIMA_MW) × 100 and plug in actual average MW values to show how {variance_magnitude_pct:.1f}% was derived. (d) State whether this level of divergence warrants action.",
-    "Math — Anomaly Severity Score: (a) Define what it is. (b) Explain it is the master decision signal. (c) Show: Severity = 0.4×DivergenceSignal + 0.35×WAPEDeltaSignal + 0.25×SharpnessSignal, plug in the actual signal values to show how {anomaly_severity_score:.2f} was derived. State the 0.40 threshold. (d) Tell the stakeholder we are below threshold so no action is needed.",
-    "Confidence: explain what low confidence physically means — the models disagree on load direction, which makes any operational change risky. Explain why the score of {anomaly_severity_score:.2f} is below the 0.40 threshold and what a stakeholder should take away from this.",
+    "Model Divergence: (a) Define what Model Divergence is in plain English. (b) Explain why a stakeholder should care. (c) Show the formula: mean(|Chronos_MW − SARIMA_MW| / SARIMA_MW) × 100 and plug in actual average MW values to show how {variance_magnitude_pct:.1f}% was derived. (d) State whether this level of divergence warrants action.",
+    "Anomaly Severity Score: (a) Define what it is. (b) Explain it is the master decision signal. (c) State the final score of {anomaly_severity_score:.2f} but DO NOT write out the math equation. (d) Tell the stakeholder we are below the {threshold} threshold so no action is needed.",
+    "Confidence: explain what low confidence physically means — the models disagree on load direction, which makes any operational change risky. Explain why the score of {anomaly_severity_score:.2f} is below the {threshold} threshold and what a stakeholder should take away from this.",
     "Decision: state that we are holding current operations in one sentence. Do not repeat anything from above."
   ],
 

@@ -12,6 +12,7 @@ class GridOpsState(TypedDict):
     # === Input ===
     dataset_path: str
     seasonality_regime: str          # WINTER / SUMMER / SHOULDER
+    severity_threshold: float        # user-configurable threshold
 
     # === Data Quality ===
     data_quality_valid: bool

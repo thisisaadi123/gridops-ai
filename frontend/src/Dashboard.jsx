@@ -613,6 +613,14 @@ function HistoricalSimilarity({ result }) {
         </div>
       </div>
 
+      <div style={{ marginBottom: '24px', fontSize: '15px', color: 'var(--text-primary)', lineHeight: '1.6' }}>
+        <span>
+          The AI identified <strong>{events.length} historical precedent{events.length !== 1 ? 's' : ''}</strong> matching 
+          the current {regime.toLowerCase()}-period {direction.toLowerCase().replace('_', ' ')} divergence of {magnitude.toFixed(1)}%. 
+          These events informed the final {(result.trading_mandate?.recommendation || 'MAINTAIN OPS').toUpperCase()} recommendation.
+        </span>
+      </div>
+
       {/* Event Match Cards */}
       <div className="similarity-grid">
         {events.map((event, i) => {
@@ -651,15 +659,7 @@ function HistoricalSimilarity({ result }) {
         })}
       </div>
 
-      {/* Connection to current analysis */}
-      <div className="similarity-summary">
-        <i className="dot emerald" style={{ width: '8px', height: '8px', marginRight: '10px', marginTop: '4px', flexShrink: 0 }} />
-        <span>
-          The AI identified <strong>{events.length} historical precedent{events.length !== 1 ? 's' : ''}</strong> matching 
-          the current {regime.toLowerCase()}-period {direction.toLowerCase().replace('_', ' ')} divergence of {magnitude.toFixed(1)}%. 
-          These events informed the final {(result.trading_mandate?.recommendation || 'MAINTAIN OPS').toUpperCase()} recommendation.
-        </span>
-      </div>
+
     </section>
   );
 }

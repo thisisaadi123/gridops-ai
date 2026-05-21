@@ -342,6 +342,7 @@ def strategy_formulator_node(state: GridOpsState) -> dict:
             seasonal_demand_pattern=state.get("seasonal_demand_pattern", ""),
             rag_context_formatted=rag_context_formatted,
             variance_report=state.get("variance_report", ""),
+            threshold=state.get("severity_threshold", 0.40),
         )),
     ]
 
@@ -364,7 +365,10 @@ def strategy_formulator_node(state: GridOpsState) -> dict:
     if isinstance(rationale, list):
         rationale = "\n\n".join(rationale)
 
+    static_intro = "The GridOps AI pipeline has analyzed the current 14-day forecast window. Below is the operational assessment of the predictive models."
+
     mandate_narrative = (
+        f"{static_intro}\n\n"
         f"{rationale}\n\n"
         f"Re-evaluation trigger: {mandate.get('re_evaluation_trigger', 'N/A')}"
     )
@@ -416,6 +420,7 @@ def conservative_advisory_node(state: GridOpsState) -> dict:
             seasonal_risk_factor=state.get("seasonal_risk_factor", ""),
             variance_report=state.get("variance_report", ""),
             rag_context_formatted=rag_context_formatted,
+            threshold=state.get("severity_threshold", 0.40),
         )),
     ]
 
@@ -436,7 +441,10 @@ def conservative_advisory_node(state: GridOpsState) -> dict:
     if isinstance(advisory_note, list):
         advisory_note = "\n\n".join(advisory_note)
         
+    static_intro = "The GridOps AI pipeline has analyzed the current 14-day forecast window. Below is the operational assessment of the predictive models."
+
     mandate_narrative = (
+        f"{static_intro}\n\n"
         f"{advisory_note}\n\n"
         f"Re-evaluation trigger: {mandate.get('re_evaluation_trigger', 'N/A')}"
     )

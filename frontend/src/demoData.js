@@ -87,9 +87,9 @@ export const DEMO_RESULT = {
   variance_report: 'DIVERGENCE ANALYSIS REPORT\n==========================\nDirection: CHRONOS_LOWER | Magnitude: 9.09%\nSARIMA WAPE: 0.0811 | Chronos WAPE: 0.0779 | Delta: 0.0032 (Chronos wins)\nSARIMA Rolling Backtest WAPE: 0.1365\nInterval Sharpness Score: 0.000100\nAnomaly Severity Score: 0.2180 / 1.0\n\nInterpretation: Models are in reasonable agreement. Standard forecast uncertainty applies.',
   rag_query_used: 'energy demand chronos lower magnitude 9 percent summer season grid load anomaly PJM',
   retrieved_events: [
-    { event_type: 'Summer load spike', severity: 'MEDIUM', demand_impact_pct: '+7.4', description: 'High humidity and elevated cooling load produced a short PJM demand spike.', grid_region: 'PJM-East' },
-    { event_type: 'Forecast divergence', severity: 'LOW', demand_impact_pct: '+3.1', description: 'Statistical baseline overestimated weekend demand while a sequence model tracked cooling-load behavior.', grid_region: 'PJM-West' },
-    { event_type: 'SARIMA overshoot correction', severity: 'LOW', demand_impact_pct: '-2.8', description: 'Classical model projected a false demand ramp during a mild July weekend; foundation model correctly predicted stable load.', grid_region: 'PJM-System' },
+    { event_type: 'HEAT_WAVE', severity: 'MEDIUM', demand_impact_pct: '+7.4', description: 'High humidity and elevated cooling load produced a short PJM demand spike.', grid_region: 'PJM-East' },
+    { event_type: 'WEATHER_ANOMALY', severity: 'LOW', demand_impact_pct: '+3.1', description: 'Statistical baseline overestimated weekend demand while a sequence model tracked cooling-load behavior.', grid_region: 'PJM-West' },
+    { event_type: 'SARIMA_OVERSHOOT', severity: 'LOW', demand_impact_pct: '-2.8', description: 'Classical model projected a false demand ramp during a mild July weekend; foundation model correctly predicted stable load.', grid_region: 'PJM-System' },
   ],
   seasonal_demand_pattern: 'This is a summer forecast window. Electricity use is mostly driven by cooling demand. Hot days can create sharp peaks, while mild weekends can pull demand down quickly.',
   seasonal_risk_factor: 'Watch weather changes. A heat wave would make the high side of the forecast more important.',

@@ -9,6 +9,11 @@
   --text-secondary: #a1a1aa;
   --text-tertiary: #71717a;
   
+  /* Chart Colors */
+  --chart-actual: #ffffff;
+  --chart-actual-alpha: rgba(255, 255, 255, 0.5);
+  --chart-grid: rgba(255, 255, 255, 0.08);
+  
   /* Accents */
   --accent-cyan: #06b6d4;
   --accent-blue: #3b82f6;
