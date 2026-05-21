@@ -819,10 +819,6 @@ function SeasonalityTab({ result }) {
           <strong>Regime Pattern Analysis</strong>
           <p>{result.seasonal_demand_pattern || 'No physical regime analysis available.'}</p>
         </div>
-        <div className="summary-item">
-          <strong>Associated Infrastructure Risk</strong>
-          <p>{result.seasonal_risk_factor || 'No infrastructure risk factors computed.'}</p>
-        </div>
       </div>
     </div>
   );

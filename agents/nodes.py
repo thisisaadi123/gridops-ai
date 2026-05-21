@@ -344,10 +344,12 @@ def strategy_formulator_node(state: GridOpsState) -> dict:
     
     p3 = f"WAPE (Weighted Absolute Percentage Error) measures how far off each model's predictions are from actual demand. A lower WAPE indicates a more accurate forecast. The SARIMA baseline has a WAPE of {sarima_wape:.2%}, while the Chronos AI has a WAPE of {chronos_wape:.2%}. This confirms the deep learning model is {wape_delta_description}."
     
+    p_sharpness = f"Forecast Sharpness measures the tightness of the model's confidence intervals. A lower score indicates higher precision. The current sharpness score is {sharpness:.6f}, which translates to a normalized sharpness signal of {sharp_signal:.2f}."
+    
     rr = state.get("risk_reward_ratio", 0)
     p4 = f"The p10 and p90 scenarios represent tail-risk bounds for potential demand outcomes. They help operators understand the worst-case physical scenarios. The p10 downside risk is {state.get('downside_var_mw', 0):,.0f} MW, while the p90 upside risk is {state.get('upside_var_mw', 0):,.0f} MW. The Risk/Reward ratio of {rr:.2f} indicates {'upside risk exceeds downside' if rr > 1.0 else 'downside risk exceeds upside'}."
     
-    quantitative_rationale = "\n\n".join([p1, p2, p3, p4])
+    quantitative_rationale = "\n\n".join([p1, p3, p_sharpness, p4, p2])
 
     messages = [
         SystemMessage(content=STRATEGY_SYSTEM),
@@ -445,10 +447,12 @@ def conservative_advisory_node(state: GridOpsState) -> dict:
     
     p3 = f"WAPE (Weighted Absolute Percentage Error) measures how far off each model's predictions are from actual demand. A lower WAPE indicates a more accurate forecast. The SARIMA baseline has a WAPE of {sarima_wape:.2%}, while the Chronos AI has a WAPE of {chronos_wape:.2%}. This confirms the deep learning model is {wape_desc}."
     
+    p_sharpness = f"Forecast Sharpness measures the tightness of the model's confidence intervals. A lower score indicates higher precision. The current sharpness score is {sharpness:.6f}, which translates to a normalized sharpness signal of {sharp_signal:.2f}."
+    
     rr = state.get("risk_reward_ratio", 0)
     p4 = f"The p10 and p90 scenarios represent tail-risk bounds for potential demand outcomes. They help operators understand the worst-case physical scenarios. The p10 downside risk is {state.get('downside_var_mw', 0):,.0f} MW, while the p90 upside risk is {state.get('upside_var_mw', 0):,.0f} MW. The Risk/Reward ratio of {rr:.2f} indicates {'upside risk exceeds downside' if rr > 1.0 else 'downside risk exceeds upside'}."
     
-    quantitative_rationale = "\n\n".join([p1, p2, p3, p4])
+    quantitative_rationale = "\n\n".join([p1, p3, p_sharpness, p4, p2])
 
     messages = [
         SystemMessage(content=CONSERVATIVE_ADVISORY_SYSTEM),

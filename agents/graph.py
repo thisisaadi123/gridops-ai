@@ -4,7 +4,6 @@ from agents.state import GridOpsState
 from agents.nodes import (
     validate_data_node,
     divergence_analyst_node,
-    seasonality_detector_node,
     rag_retriever_node,
     risk_quantifier_node,
     strategy_formulator_node,
@@ -51,10 +50,8 @@ def build_gridops_graph():
       ↓
     validate_data ──(quality_fail)──→ END
       ↓ (quality_pass)
-    divergence_analyst ←──────────┐
-                                   │ (both run in parallel from validate_data)
-    seasonality_detector ←─────────┘
-      ↓ (both feed into)
+    divergence_analyst
+      ↓
     rag_retriever
       ↓
     risk_quantifier
@@ -70,7 +67,6 @@ def build_gridops_graph():
     # Register all nodes
     builder.add_node("validate_data", validate_data_node)
     builder.add_node("divergence_analyst", divergence_analyst_node)
-    builder.add_node("seasonality_detector", seasonality_detector_node)
     builder.add_node("rag_retriever", rag_retriever_node)
     builder.add_node("risk_quantifier", risk_quantifier_node)
     builder.add_node("strategy_formulator", strategy_formulator_node)
@@ -89,13 +85,7 @@ def build_gridops_graph():
         }
     )
 
-    # Fan-out: seasonality_detector runs in parallel with divergence_analyst.
-    # Guarded inside the node body to skip LLM call on bad data.
-    builder.add_edge("validate_data", "seasonality_detector")
-
-    # Fan-in: rag_retriever waits for BOTH parallel nodes
     builder.add_edge("divergence_analyst", "rag_retriever")
-    builder.add_edge("seasonality_detector", "rag_retriever")
 
     # Linear chain after fan-in
     builder.add_edge("rag_retriever", "risk_quantifier")

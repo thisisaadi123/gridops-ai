@@ -56,7 +56,7 @@ Output a JSON object with EXACTLY these keys:
     "Briefly explain how event 2 informs today's decision.",
     "Briefly explain how event 3 informs today's decision."
   ],
-  "summary_rationale": "A single, authoritative, punchy paragraph (max 3 sentences) summarizing the final recommendation and why it was chosen based on the quantitative data. Avoid run-on sentences.",
+  "summary_rationale": "A comprehensive, highly detailed summary paragraph (4-6 sentences) synthesizing the final recommendation. You must explicitly cite the Anomaly Severity Score, the divergence percentage, WAPE, and p10/p90 risks from the text. Do not loop back, repeat yourself, or hallucinate data that wasn't provided.",
   "re_evaluation_trigger": "One observable condition to trigger re-evaluation."
 }}
 """
@@ -93,7 +93,7 @@ Output a JSON object with EXACTLY these keys:
     "Briefly explain how event 2 supports maintaining operations.",
     "Briefly explain how event 3 supports maintaining operations."
   ],
-  "summary_rationale": "A single, authoritative, punchy paragraph (max 3 sentences) explaining why we are maintaining operations. Avoid run-on sentences. Cite the low severity score and explain that the risk factors do not justify deploying reserves.",
+  "summary_rationale": "A comprehensive, highly detailed summary paragraph (4-6 sentences) synthesizing why we are maintaining operations. You must explicitly cite the low Anomaly Severity Score, the divergence percentage, WAPE, and p10/p90 risks from the text. Do not loop back, repeat yourself, or hallucinate data that wasn't provided.",
   "re_evaluation_trigger": "One observable condition to trigger re-evaluation."
 }}
 """
