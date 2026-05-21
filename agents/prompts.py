@@ -119,10 +119,11 @@ Now issue your operational mandate as a JSON object with EXACTLY these keys:
   ],
 
   "rationale": [
-    "Write an EXTENSIVE, highly detailed control room briefing. Paragraph 1: Start immediately with the physical grid reality (e.g., 'We are holding operations steady because...').",
-    "Paragraph 2: If you mention ANY metric (Model Divergence, Severity, WAPE), you MUST seamlessly weave its true mathematical and operational meaning into the sentence. (e.g., 'The 2.1% Model Divergence reveals that our deep learning Chronos model is detecting a non-linear load pattern that the traditional SARIMA statistical baseline missed.')",
-    "Paragraph 3: Thoroughly explain the WHY behind your decision. Deconstruct the physical risks.",
-    "Paragraph 4: Additional operational context and mandate clarification."
+    "Write a DENSE, highly concentrated control room briefing. Stop writing exactly when you have explained the data. Do NOT loop or pad the text.",
+    "Paragraph 1: Start immediately with the physical grid reality. Explain exactly what physical forces are driving the grid state.",
+    "Paragraph 2: If you mention ANY metric, you MUST seamlessly weave its true mathematical meaning into the sentence. For example, explicitly explain that the Model Divergence is calculated as the percentage difference between the AI Chronos forecast and the traditional SARIMA baseline.",
+    "Paragraph 3: Explain the WHY behind your decision based on those metrics.",
+    "Paragraph 4: State your operational mandate ONCE. NEVER repeat your recommendation in different words. Ban generic phrases like 'normal parameters' or 'significant changes'. Use precise grid vocabulary (e.g., spinning reserve margin, N-1 contingency, thermal limits)."
   ],
 
   "stop_loss_trigger": "One specific, observable physical event that would immediately invalidate this mandate.",
@@ -197,10 +198,11 @@ Issue your advisory as a JSON object with EXACTLY these keys:
   ],
 
   "advisory_note": [
-    "Write an EXTENSIVE, highly detailed control room briefing. Paragraph 1: Start immediately with physical grid reality. NEVER start with 'The models are currently indicating', 'The Model Divergence suggests', or 'As a result'.",
-    "Paragraph 2: If you mention ANY metric (Model Divergence, Severity, Thresholds), you MUST seamlessly weave its true mathematical and operational meaning into the sentence. (e.g., 'The 2.1% Model Divergence reveals that our deep learning Chronos model is detecting a non-linear load pattern that the traditional SARIMA statistical baseline missed.')",
-    "Paragraph 3: Explicitly explain what 'low confidence' means physically (e.g., the models cannot agree on the direction of the load). Explain exactly why the threshold is not met.",
-    "Paragraph 4: Additional operational context and final guidance."
+    "Write a DENSE, highly concentrated control room briefing. Stop writing exactly when you have explained the data. Do NOT loop or pad the text.",
+    "Paragraph 1: Start immediately with physical grid reality. Explain exactly what physical forces are driving the grid state.",
+    "Paragraph 2: If you mention ANY metric, you MUST seamlessly weave its true mathematical meaning into the sentence. For example, explicitly explain that the Model Divergence is calculated as the percentage difference between the AI Chronos forecast and the traditional SARIMA baseline.",
+    "Paragraph 3: Explicitly explain what 'low confidence' means physically (e.g., the models cannot agree on the direction of the load).",
+    "Paragraph 4: State that we are holding operations exactly ONCE. NEVER repeat your recommendation. Ban generic phrases like 'normal parameters' or 'significant changes'. Use precise grid vocabulary."
   ],
 
   "re_evaluation_trigger": "One specific observable condition — a weather event, a demand reading, a model convergence threshold — that would trigger re-evaluation.",
