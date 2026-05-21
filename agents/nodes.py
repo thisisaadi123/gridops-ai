@@ -88,6 +88,8 @@ def divergence_analyst_node(state: GridOpsState) -> dict:
     # Compute directional variance
     mean_variance_pct = float(np.mean((chronos - sarima) / (sarima + 1e-8)) * 100)
     abs_variance_pct = float(np.mean(np.abs(chronos - sarima) / (sarima + 1e-8)) * 100)
+    sarima_mean_mw = float(np.mean(sarima))
+    chronos_mean_mw = float(np.mean(chronos))
 
     direction = (
         "CHRONOS_HIGHER" if mean_variance_pct > 2
@@ -98,9 +100,9 @@ def divergence_analyst_node(state: GridOpsState) -> dict:
     # Anomaly severity score (0.0 to 1.0):
     # Combines three signals — model divergence, WAPE improvement, and band width
     wape_delta = max(0, (state.get("sarima_wape") or 0) - (state.get("chronos_wape") or 0))  # higher = Chronos is better
-    wape_signal = min(wape_delta / 0.1, 1.0)                           # normalize to 0-1
+    wape_signal = min(wape_delta / 0.03, 1.0)                          # 3% delta = max signal
 
-    divergence_signal = min(abs_variance_pct / 20.0, 1.0)              # >20% divergence = max signal
+    divergence_signal = min(abs_variance_pct / 6.0, 1.0)               # >6% divergence = max signal
 
     sharpness = state.get("interval_sharpness") or 0
     sharpness_signal = min(sharpness / 0.001, 1.0)                     # normalize
@@ -116,6 +118,7 @@ def divergence_analyst_node(state: GridOpsState) -> dict:
         f"DIVERGENCE ANALYSIS REPORT\n"
         f"==========================\n"
         f"Direction: {direction} | Magnitude: {abs_variance_pct:.2f}%\n"
+        f"SARIMA Avg MW: {sarima_mean_mw:.1f} | Chronos Avg MW: {chronos_mean_mw:.1f}\n"
         f"SARIMA WAPE: {state['sarima_wape']:.4f} | "
         f"Chronos WAPE: {state['chronos_wape']:.4f} | "
         f"Delta: {wape_delta:.4f} ({'Chronos wins' if wape_delta > 0 else 'SARIMA wins'})\n"
@@ -133,6 +136,8 @@ def divergence_analyst_node(state: GridOpsState) -> dict:
         "divergence_direction": direction,
         "anomaly_severity_score": anomaly_severity_score,
         "variance_report": variance_report,
+        "sarima_mean_mw": sarima_mean_mw,
+        "chronos_mean_mw": chronos_mean_mw,
         "analysis_findings": [f"Model divergence: {direction} at {abs_variance_pct:.1f}% | Severity: {anomaly_severity_score:.2f}"],
         "graph_execution_trace": ["divergence_analyst_node"],
     }

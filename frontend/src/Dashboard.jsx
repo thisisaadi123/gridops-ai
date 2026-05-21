@@ -729,11 +729,42 @@ function SummaryTab({ result }) {
 }
 
 function DivergenceTab({ result }) {
+  const sarimaMw = result.sarima_mean_mw || 0;
+  const chronosMw = result.chronos_mean_mw || 0;
+  const divPct = result.variance_magnitude_pct || 0;
+
   return (
     <div>
       <div className="tab-context">
         <strong>Context:</strong> Model Divergence measures the percentage difference between the Chronos deep learning forecast and the SARIMA statistical baseline. A high divergence indicates that the AI detects a complex weather or grid pattern that classical statistics missed.
       </div>
+
+      <div className="summary-grid" style={{ marginBottom: '16px' }}>
+        <div className="summary-item">
+          <strong>Average SARIMA Forecast</strong>
+          <div style={{ fontSize: '24px', color: 'var(--text-primary)', marginTop: '4px' }}>
+            {sarimaMw ? `${Math.round(sarimaMw).toLocaleString()} MW` : 'N/A'}
+          </div>
+        </div>
+        <div className="summary-item">
+          <strong>Average Chronos Forecast</strong>
+          <div style={{ fontSize: '24px', color: 'var(--accent-blue)', marginTop: '4px' }}>
+            {chronosMw ? `${Math.round(chronosMw).toLocaleString()} MW` : 'N/A'}
+          </div>
+        </div>
+        <div className="summary-item">
+          <strong>Mean Divergence</strong>
+          <div style={{ fontSize: '24px', color: 'var(--accent-amber)', marginTop: '4px' }}>
+            {divPct.toFixed(2)}%
+          </div>
+        </div>
+      </div>
+
+      <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px 16px', borderRadius: '4px', marginBottom: '16px', border: '1px solid var(--glass-border)', fontFamily: 'monospace', fontSize: '13px', color: 'var(--text-secondary)' }}>
+        <strong>Calculation Formula:</strong><br/>
+        Mean[ |Chronos_MW - SARIMA_MW| / SARIMA_MW ] * 100
+      </div>
+
       <pre className="code-block">{result.variance_report || 'No divergence report available.'}</pre>
     </div>
   );
