@@ -47,7 +47,7 @@ export function Dashboard({ result, elapsed, onNew, onExport, horizon }) {
           <span className="kicker" style={{ margin: 0 }}>Algorithmic Severity</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '12px' }}>
             <div className="severity-ring" style={{ width: '70px', height: '70px', border: '4px solid var(--glass-border)' }}>
-              <span className="severity-num" style={{ fontSize: '22px' }}>{Math.round(num(result.anomaly_severity_score) * 100)}</span>
+              <span className="severity-num" style={{ fontSize: '22px' }}>{num(result.anomaly_severity_score).toFixed(2)}</span>
             </div>
             <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
               Threshold<br/>

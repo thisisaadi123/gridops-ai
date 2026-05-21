@@ -105,12 +105,12 @@ Now issue your operational mandate as a JSON object with EXACTLY these keys:
   ],
 
   "historical_analysis": [
-    "A 1-2 sentence explanation for Event 1 detailing exactly how and why its physical conditions compare to our current situation",
-    "A 1-2 sentence explanation for Event 2 detailing exactly how and why its physical conditions compare to our current situation",
-    "A 1-2 sentence explanation for Event 3 detailing exactly how and why its physical conditions compare to our current situation"
+    "Event 1: Write 1-2 sentences comparing the physical conditions of this past event to the current situation. STRICT NEGATIVE CONSTRAINTS: NEVER use phrases like 'not directly comparable', 'historical precedent', or 'demonstrates the potential'. Explain specifically what happened on the physical grid in this past event. Then state exactly what that implies for our current physical conditions.",
+    "Event 2: Write 1-2 sentences comparing the physical conditions of this past event to the current situation. STRICT NEGATIVE CONSTRAINTS: NEVER use phrases like 'not directly comparable', 'historical precedent', or 'demonstrates the potential'.",
+    "Event 3: Write 1-2 sentences comparing the physical conditions of this past event to the current situation. STRICT NEGATIVE CONSTRAINTS: NEVER use phrases like 'not directly comparable', 'historical precedent', or 'demonstrates the potential'."
   ],
 
-  "rationale": "Write your control room briefing. 2-3 paragraphs. Explain: what the data is telling you about physical grid conditions right now, what specific actions operators should take and why, and why you chose this contract type over alternatives. Speak plainly — as if a shift supervisor who has not seen the raw numbers needs to understand your mandate in 60 seconds. Do not start with 'The data shows' or 'Based on the analysis'. Start with what is physically happening.",
+  "rationale": "Write your control room briefing. 2-3 paragraphs. Explain: what the data is telling you about physical grid conditions right now, what specific actions operators should take and why. Speak plainly — as if a shift supervisor who has not seen the raw numbers needs to understand your mandate in 60 seconds. STRICT NEGATIVE CONSTRAINTS: NEVER start with 'The data shows', 'The models are currently indicating', or 'Based on the analysis'. Start immediately with physical grid reality (e.g. 'We are seeing normal summer load despite the variance...').",
 
   "stop_loss_trigger": "One specific, observable event that would immediately invalidate this mandate and require re-evaluation",
 
@@ -172,12 +172,12 @@ Issue your advisory as a JSON object with EXACTLY these keys:
   ],
 
   "historical_analysis": [
-    "A 1-2 sentence explanation for Event 1 detailing exactly how and why its physical conditions compare to our current situation",
-    "A 1-2 sentence explanation for Event 2 detailing exactly how and why its physical conditions compare to our current situation",
-    "A 1-2 sentence explanation for Event 3 detailing exactly how and why its physical conditions compare to our current situation"
+    "Event 1: Write 1-2 sentences comparing the physical conditions of this past event to the current situation. STRICT NEGATIVE CONSTRAINTS: NEVER use phrases like 'not directly comparable', 'historical precedent', or 'demonstrates the potential'. Explain specifically what happened on the physical grid in this past event. Then state exactly what that implies for our current physical conditions.",
+    "Event 2: Write 1-2 sentences comparing the physical conditions of this past event to the current situation. STRICT NEGATIVE CONSTRAINTS: NEVER use phrases like 'not directly comparable', 'historical precedent', or 'demonstrates the potential'.",
+    "Event 3: Write 1-2 sentences comparing the physical conditions of this past event to the current situation. STRICT NEGATIVE CONSTRAINTS: NEVER use phrases like 'not directly comparable', 'historical precedent', or 'demonstrates the potential'."
   ],
 
-  "advisory_note": "Your control room briefing. 2-3 paragraphs in plain English. Explain what the models are seeing, why it does not yet meet the threshold for action, and what operators should continue doing. Do not just recite numbers. Translate the uncertainty into physical reality — what does a {variance_magnitude_pct:.1f}% model divergence actually mean for grid operations today? Start with what is happening, not with qualifications.",
+  "advisory_note": "Your control room briefing. 2-3 paragraphs in plain English. Explain what the models are seeing, why it does not yet meet the threshold for action, and what operators should continue doing. STRICT NEGATIVE CONSTRAINTS: NEVER start with 'The models are currently indicating', 'The Model Divergence suggests', or 'As a result'. NEVER use generic AI transition phrases. Instead, start immediately with physical grid reality (e.g. 'We are holding operations steady because the current variance is just normal weather noise...'). Tell the operators exactly what the math means for the wires.",
 
   "re_evaluation_trigger": "One specific observable condition — a weather event, a demand reading, a model convergence threshold — that would trigger re-evaluation",
 
