@@ -198,7 +198,7 @@ def seasonality_detector_node(state: GridOpsState) -> dict:
     return {
         "seasonal_demand_pattern": seasonal_demand_pattern,
         "seasonal_risk_factor": "N/A",
-        "analysis_findings": [f"Seasonal context: {regime} regime | {seasonal_risk[:80]}..."],
+        "analysis_findings": [f"Seasonal context: {regime} regime | {seasonal_demand_pattern[:80]}..."],
         "graph_execution_trace": ["seasonality_detector_node"],
     }
 
