@@ -590,7 +590,7 @@ a { color: var(--accent-cyan); text-decoration: none; }
 }
 
 .mandate-card h2 { margin: 8px 0 20px; font-size: 28px; }
-.mandate-rationale { font-size: 15px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 24px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--glass-border); }
+.mandate-rationale { font-size: 15px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 24px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--glass-border); white-space: pre-wrap; }
 .mandate-facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
 .mandate-facts > div { background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); padding: 16px; text-align: center; }
 .mandate-facts span { display: block; font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; }

@@ -119,11 +119,10 @@ Now issue your operational mandate as a JSON object with EXACTLY these keys:
   ],
 
   "rationale": [
-    "Write a DENSE, highly concentrated control room briefing. Stop writing exactly when you have explained the data. Do NOT loop or pad the text.",
-    "Paragraph 1: Start immediately with the physical grid reality. Explain exactly what physical forces are driving the grid state.",
-    "Paragraph 2: If you mention ANY metric, you MUST seamlessly weave its true mathematical meaning into the sentence. For example, explicitly explain that the Model Divergence is calculated as the percentage difference between the AI Chronos forecast and the traditional SARIMA baseline.",
-    "Paragraph 3: Explain the WHY behind your decision based on those metrics.",
-    "Paragraph 4: State your operational mandate ONCE. NEVER repeat your recommendation in different words. Ban generic phrases like 'normal parameters' or 'significant changes'. Use precise grid vocabulary (e.g., spinning reserve margin, N-1 contingency, thermal limits)."
+    "1. The exact physical grid reality right now (1-2 sentences max). Do NOT state your final conclusion here.",
+    "2. The mathematical breakdown of Model Divergence and WAPE (1-2 sentences max). You MUST explicitly state that Divergence is the percentage difference between the AI Chronos forecast and the traditional SARIMA baseline.",
+    "3. The breakdown of the physical risks and thresholds (1-2 sentences max).",
+    "4. The final operational mandate (1 punchy sentence). NEVER repeat any previous point."
   ],
 
   "stop_loss_trigger": "One specific, observable physical event that would immediately invalidate this mandate.",
@@ -198,11 +197,10 @@ Issue your advisory as a JSON object with EXACTLY these keys:
   ],
 
   "advisory_note": [
-    "Write a DENSE, highly concentrated control room briefing. Stop writing exactly when you have explained the data. Do NOT loop or pad the text.",
-    "Paragraph 1: Start immediately with physical grid reality. Explain exactly what physical forces are driving the grid state.",
-    "Paragraph 2: If you mention ANY metric, you MUST seamlessly weave its true mathematical meaning into the sentence. For example, explicitly explain that the Model Divergence is calculated as the percentage difference between the AI Chronos forecast and the traditional SARIMA baseline.",
-    "Paragraph 3: Explicitly explain what 'low confidence' means physically (e.g., the models cannot agree on the direction of the load).",
-    "Paragraph 4: State that we are holding operations exactly ONCE. NEVER repeat your recommendation. Ban generic phrases like 'normal parameters' or 'significant changes'. Use precise grid vocabulary."
+    "1. The exact physical grid reality right now (1-2 sentences max). NEVER start with generic phrases. Do NOT state your final conclusion here.",
+    "2. The mathematical breakdown of Model Divergence and WAPE (1-2 sentences max). You MUST explicitly state that Divergence is the percentage difference between the AI Chronos forecast and the traditional SARIMA baseline.",
+    "3. Explicit explanation of what 'low confidence' physically implies for the grid and the exact reason the threshold was not met (1-2 sentences max).",
+    "4. The final operational mandate (1 punchy sentence). State that we are holding operations exactly ONCE. NEVER repeat any previous point."
   ],
 
   "re_evaluation_trigger": "One specific observable condition — a weather event, a demand reading, a model convergence threshold — that would trigger re-evaluation.",
