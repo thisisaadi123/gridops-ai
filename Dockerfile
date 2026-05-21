@@ -29,7 +29,6 @@ COPY rag/ rag/
 COPY data_store/ data_store/
 COPY scripts/ scripts/
 COPY supervisord.conf .
-COPY .env.example .env
 
 # --- Build ChromaDB vector index at image build time ---
 RUN python -m rag.build_index

@@ -118,6 +118,9 @@ class LocalChronosClient(BaseChronosClient):
                     torch_dtype=torch.float32,
                 )
 
+        if self.pipeline is None:
+            raise RuntimeError("Chronos pipeline failed to load — both primary and fallback models failed.")
+
         _validate_forecast_request(prediction_length, num_samples)
         context = _prepare_context(context_series, context_limit=512)
         tensor = torch.tensor(context, dtype=torch.float32)
