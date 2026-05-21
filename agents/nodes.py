@@ -324,42 +324,6 @@ def strategy_formulator_node(state: GridOpsState) -> dict:
         else f"underperforming baseline by {abs(chronos_wape - sarima_wape):.2%}"
     )
 
-    messages = [
-        SystemMessage(content=STRATEGY_SYSTEM),
-        HumanMessage(content=STRATEGY_HUMAN.format(
-            sarima_wape=sarima_wape,
-            chronos_wape=chronos_wape,
-            wape_delta_description=wape_delta_description,
-            divergence_direction=state["divergence_direction"],
-            variance_magnitude_pct=state["variance_magnitude_pct"],
-            anomaly_severity_score=state["anomaly_severity_score"],
-            interval_sharpness=state.get("interval_sharpness", 0),
-            downside_var_mw=state["downside_var_mw"],
-            upside_var_mw=state["upside_var_mw"],
-            risk_reward_ratio=state["risk_reward_ratio"],
-            seasonality_regime=state.get("seasonality_regime", "SHOULDER"),
-            seasonal_risk_factor=state.get("seasonal_risk_factor", ""),
-            seasonal_demand_pattern=state.get("seasonal_demand_pattern", ""),
-            rag_context_formatted=rag_context_formatted,
-            variance_report=state.get("variance_report", ""),
-            threshold=state.get("severity_threshold", 0.40),
-        )),
-    ]
-
-    response = llm.invoke(messages)
-    content = response.content
-    if isinstance(content, list):
-        raw_json = " ".join(
-            str(block.get("text", "")) if isinstance(block, dict) else block
-            for block in content
-        ).strip()
-    else:
-        raw_json = content.strip()
-
-    # Clean and parse JSON (Grok sometimes wraps in markdown)
-    raw_json = raw_json.replace("```json", "").replace("```", "").strip()
-    mandate = json.loads(raw_json, strict=False)
-
     # Build static mathematical rationale paragraphs
     sarima_mw = state.get("sarima_mean_mw", 0)
     chronos_mw = state.get("chronos_mean_mw", 0)
@@ -377,6 +341,33 @@ def strategy_formulator_node(state: GridOpsState) -> dict:
     p4 = f"The p10 and p90 scenarios represent tail-risk bounds for potential demand outcomes. They help operators understand the worst-case physical scenarios. The p10 downside risk is {state.get('downside_var_mw', 0):,.0f} MW, while the p90 upside risk is {state.get('upside_var_mw', 0):,.0f} MW. The Risk/Reward ratio of {rr:.2f} indicates {'upside risk exceeds downside' if rr > 1.0 else 'downside risk exceeds upside'}."
     
     quantitative_rationale = "\n\n".join([p1, p2, p3, p4])
+
+    messages = [
+        SystemMessage(content=STRATEGY_SYSTEM),
+        HumanMessage(content=STRATEGY_HUMAN.format(
+            quantitative_rationale=quantitative_rationale,
+            seasonality_regime=state.get("seasonality_regime", "SHOULDER"),
+            seasonal_risk_factor=state.get("seasonal_risk_factor", ""),
+            seasonal_demand_pattern=state.get("seasonal_demand_pattern", ""),
+            rag_context_formatted=rag_context_formatted,
+        )),
+    ]
+
+    response = llm.invoke(messages)
+    content = response.content
+    if isinstance(content, list):
+        raw_json = " ".join(
+            str(block.get("text", "")) if isinstance(block, dict) else block
+            for block in content
+        ).strip()
+    else:
+        raw_json = content.strip()
+
+    # Clean and parse JSON (Grok sometimes wraps in markdown)
+    raw_json = raw_json.replace("```json", "").replace("```", "").strip()
+    mandate = json.loads(raw_json, strict=False)
+
+
     
     # Get the LLM summary
     summary_rationale = mandate.get('summary_rationale', '')
@@ -426,34 +417,6 @@ def conservative_advisory_node(state: GridOpsState) -> dict:
         )
     rag_context_formatted = "\n".join(rag_lines) if rag_lines else "No similar events retrieved."
 
-    messages = [
-        SystemMessage(content=CONSERVATIVE_ADVISORY_SYSTEM),
-        HumanMessage(content=CONSERVATIVE_ADVISORY_HUMAN.format(
-            anomaly_severity_score=state.get("anomaly_severity_score", 0),
-            variance_magnitude_pct=state.get("variance_magnitude_pct", 0),
-            sarima_wape=state.get("sarima_wape", 0),
-            chronos_wape=state.get("chronos_wape", 0),
-            seasonality_regime=state.get("seasonality_regime", "SHOULDER"),
-            seasonal_risk_factor=state.get("seasonal_risk_factor", ""),
-            variance_report=state.get("variance_report", ""),
-            rag_context_formatted=rag_context_formatted,
-            threshold=state.get("severity_threshold", 0.40),
-        )),
-    ]
-
-    response = llm.invoke(messages)
-    content = response.content
-    if isinstance(content, list):
-        raw_json = " ".join(
-            str(block.get("text", "")) if isinstance(block, dict) else block
-            for block in content
-        ).strip()
-    else:
-        raw_json = content.strip()
-        
-    raw_json = raw_json.replace("```json", "").replace("```", "").strip()
-    mandate = json.loads(raw_json, strict=False)
-
     # Build static mathematical rationale paragraphs
     sarima_mw = state.get("sarima_mean_mw", 0)
     chronos_mw = state.get("chronos_mean_mw", 0)
@@ -475,6 +438,31 @@ def conservative_advisory_node(state: GridOpsState) -> dict:
     p4 = f"The p10 and p90 scenarios represent tail-risk bounds for potential demand outcomes. They help operators understand the worst-case physical scenarios. The p10 downside risk is {state.get('downside_var_mw', 0):,.0f} MW, while the p90 upside risk is {state.get('upside_var_mw', 0):,.0f} MW. The Risk/Reward ratio of {rr:.2f} indicates {'upside risk exceeds downside' if rr > 1.0 else 'downside risk exceeds upside'}."
     
     quantitative_rationale = "\n\n".join([p1, p2, p3, p4])
+
+    messages = [
+        SystemMessage(content=CONSERVATIVE_ADVISORY_SYSTEM),
+        HumanMessage(content=CONSERVATIVE_ADVISORY_HUMAN.format(
+            quantitative_rationale=quantitative_rationale,
+            seasonality_regime=state.get("seasonality_regime", "SHOULDER"),
+            seasonal_risk_factor=state.get("seasonal_risk_factor", ""),
+            rag_context_formatted=rag_context_formatted,
+        )),
+    ]
+
+    response = llm.invoke(messages)
+    content = response.content
+    if isinstance(content, list):
+        raw_json = " ".join(
+            str(block.get("text", "")) if isinstance(block, dict) else block
+            for block in content
+        ).strip()
+    else:
+        raw_json = content.strip()
+        
+    raw_json = raw_json.replace("```json", "").replace("```", "").strip()
+    mandate = json.loads(raw_json, strict=False)
+
+
     
     summary_rationale = mandate.get('summary_rationale', '')
 

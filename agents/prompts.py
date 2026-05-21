@@ -70,26 +70,11 @@ QUALITY RULES — VIOLATIONS WILL BE REJECTED:
 
 
 STRATEGY_HUMAN = """
-You have received the following intelligence package from your quantitative 
-analysis team. Work through it carefully and issue an operational mandate.
+You have received the following quantitative assessment from your engineering team. 
+Read it carefully and summarize it into a final operational mandate.
 
-─── MODEL PERFORMANCE ───────────────────────────────
-Our SARIMA statistical baseline has a WAPE of {sarima_wape:.2%}.
-Our finetuned Chronos-T5-Base foundation model has a WAPE of {chronos_wape:.2%}.
-Model comparison delta: {wape_delta_description}
-
-─── FORECAST DIVERGENCE ─────────────────────────────
-The Divergence is computed as: mean(|Chronos_MW − SARIMA_MW| / SARIMA_MW) × 100.
-The two models diverge by {variance_magnitude_pct:.1f}% in the {divergence_direction} direction.
-Anomaly Severity Score: {anomaly_severity_score:.2f} / 1.00
-(Severity = 0.4×DivergenceSignal + 0.35×WAPEDeltaSignal + 0.25×SharpnessSignal)
-Interval Sharpness: {interval_sharpness:.4f} (higher = tighter confidence band)
-
-─── PHYSICAL RISK METRICS ───────────────────────────
-Downside scenario (p10): demand could fall {downside_var_mw:,.0f} MW below forecast median
-Upside scenario (p90): demand could spike {upside_var_mw:,.0f} MW above forecast median
-Risk/Reward ratio: {risk_reward_ratio:.2f} 
-(>1.0 means upside risk exceeds downside — more likely to need emergency reserves than curtailment)
+─── QUANTITATIVE ASSESSMENT ─────────────────────────
+{quantitative_rationale}
 
 ─── SEASONAL CONTEXT ────────────────────────────────
 Season: {seasonality_regime}
@@ -99,10 +84,6 @@ Full context: {seasonal_demand_pattern}
 ─── HISTORICAL PRECEDENTS ───────────────────────────
 Similar conditions have occurred before on the PJME grid:
 {rag_context_formatted}
-
-─── QUANTITATIVE ANALYST REPORT ─────────────────────
-{variance_report}
-
 ─────────────────────────────────────────────────────
 
 Now issue your operational mandate as a JSON object with EXACTLY these keys (no extra keys):
@@ -139,7 +120,7 @@ QUALITY RULES — VIOLATIONS WILL BE REJECTED:
 - Never use filler phrases: "it is important", "it should be noted", "in conclusion", 
   "furthermore", "additionally", "moreover", "it is worth mentioning".
 - Never restate data that was given to you — INTERPRET it.
-- Each advisory_note paragraph must make a NEW point. No repetition across paragraphs.
+- Never restate data that was given to you — INTERPRET it.
 - The historical_analysis array must reference each retrieved event BY NAME 
   (the event_type), state what physically happened, and explain specifically 
   why that precedent supports holding operations.
@@ -150,19 +131,10 @@ CONSERVATIVE_ADVISORY_HUMAN = """
 The GridOps AI pipeline has flagged this forecast run as LOW CONFIDENCE and 
 routed it to your risk desk for a conservative advisory.
 
-Here is the complete data package:
+Here is the complete data package from the engineering team:
 
-─── MODEL PERFORMANCE ───────────────────────────────
-SARIMA statistical baseline WAPE: {sarima_wape:.2%}
-Chronos deep learning model WAPE: {chronos_wape:.2%}
-
-─── FORECAST DIVERGENCE ─────────────────────────────
-Model Divergence: {variance_magnitude_pct:.1f}%
-(Computed as: mean(|Chronos_MW − SARIMA_MW| / SARIMA_MW) × 100)
-
-Anomaly Severity Score: {anomaly_severity_score:.2f} out of 1.00
-(Computed as: 0.4×DivergenceSignal + 0.35×WAPEDeltaSignal + 0.25×SharpnessSignal)
-Our threshold for active operational changes is {threshold} — we are currently below it.
+─── QUANTITATIVE ASSESSMENT ─────────────────────────
+{quantitative_rationale}
 
 ─── SEASONAL CONTEXT ────────────────────────────────
 Season: {seasonality_regime}
@@ -171,9 +143,6 @@ Seasonal risk: {seasonal_risk_factor}
 ─── HISTORICAL PRECEDENTS ───────────────────────────
 Similar conditions have occurred before on the PJME grid:
 {rag_context_formatted}
-
-─── QUANTITATIVE ANALYST REPORT ─────────────────────
-{variance_report}
 ─────────────────────────────────────────────────────
 
 Your job: explain to the control room why we are NOT taking aggressive action 
