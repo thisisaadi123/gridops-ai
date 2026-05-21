@@ -4,7 +4,7 @@ from worker.chronos_client import get_chronos_client
 from agents.graph import gridops_graph
 from api.config import get_settings
 from loguru import logger
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 @celery_app.task(bind=True, name='tasks.run_gridops_pipeline', max_retries=2)
@@ -106,7 +106,7 @@ def run_gridops_pipeline(self, dataset_path: str, severity_threshold: float = 0.
             'forecast_horizon': forecast_horizon,
             'analysis_findings': [],
             'graph_execution_trace': [],
-            'pipeline_start_ts': datetime.utcnow().isoformat(),
+            'pipeline_start_ts': datetime.now(timezone.utc).isoformat(),
             'pipeline_end_ts': '',
         }
         result = gridops_graph.invoke(initial_state)
@@ -146,7 +146,7 @@ def run_gridops_pipeline(self, dataset_path: str, severity_threshold: float = 0.
             'analysis_findings': result['analysis_findings'],
             'graph_execution_trace': result['graph_execution_trace'],
             'pipeline_start_ts': result['pipeline_start_ts'],
-            'pipeline_end_ts': datetime.utcnow().isoformat(),
+            'pipeline_end_ts': datetime.now(timezone.utc).isoformat(),
             'retrieved_events': result.get('retrieved_events', []),
             'anomaly_severity_score': result.get('anomaly_severity_score', 0.0),
             'seasonal_demand_pattern': result.get('seasonal_demand_pattern', ''),
