@@ -66,7 +66,18 @@ QUALITY RULES — VIOLATIONS WILL BE REJECTED:
 - The historical_analysis array must reference each retrieved event BY NAME 
   (the event_type), state what physically happened, and explain specifically 
   why that precedent supports or contradicts today's forecast.
-- Write naturally as a senior grid engineer. Dense, expert-level analysis only."""
+- Write naturally as a senior grid engineer. Dense, expert-level analysis only.
+
+METRIC EXPLANATION RULE — for EVERY mathematical term you mention (WAPE, 
+Model Divergence, Anomaly Severity Score, Risk/Reward Ratio, p10, p90, 
+Sharpness, etc.) you MUST explain it in this exact 4-part structure:
+  (a) DEFINITION: What is this metric? One sentence in plain English.
+  (b) SIGNIFICANCE: What does it physically mean for the grid? Why should a 
+      non-technical stakeholder care about this number?
+  (c) CALCULATION: Show the exact formula and plug in the actual numbers from 
+      this run. Example: "Divergence = mean(|33,893 − 41,437| / 41,437) × 100 = 9.09%"
+  (d) INTERPRETATION: What should the stakeholder conclude from this specific 
+      value? Is it good, bad, or neutral? What action (or inaction) does it support?"""
 
 
 STRATEGY_HUMAN = """
@@ -120,8 +131,10 @@ Now issue your operational mandate as a JSON object with EXACTLY these keys (no 
 
   "rationale": [
     "Opening: describe the physical state of the grid right now in 1-2 sentences. What is the load doing? What is the weather doing?",
-    "Math: explain how the Model Divergence of {variance_magnitude_pct:.1f}% was computed (mean absolute percentage difference between Chronos MW and SARIMA MW forecasts across the horizon). Explain the Anomaly Severity Score of {anomaly_severity_score:.2f} and its weighted components (40% divergence, 35% WAPE delta, 25% sharpness). Use the actual numbers from above.",
-    "Risk: what are the physical consequences if we are wrong? Reference the p10 ({downside_var_mw:,.0f} MW) and p90 ({upside_var_mw:,.0f} MW) scenarios.",
+    "Math — Model Divergence: (a) Define what Model Divergence is. (b) Explain why it matters for grid stability. (c) Show the calculation: Divergence = mean(|Chronos_MW − SARIMA_MW| / SARIMA_MW) × 100, plug in the actual average MW values from the data to show how {variance_magnitude_pct:.1f}% was derived. (d) State whether this divergence level is actionable or noise.",
+    "Math — Anomaly Severity Score: (a) Define what the Anomaly Severity Score is. (b) Explain that it is the master signal that determines whether we take action. (c) Show the weighted calculation: Severity = 0.4×DivergenceSignal + 0.35×WAPEDeltaSignal + 0.25×SharpnessSignal, plug in the actual signal values to show how {anomaly_severity_score:.2f} was derived. State the threshold is 0.40. (d) Tell the stakeholder whether we are above or below the action threshold and what that means.",
+    "Math — WAPE: (a) Define WAPE (Weighted Absolute Percentage Error) as a model accuracy metric. (b) Explain that lower WAPE = more accurate forecast. (c) State the actual WAPE values for both models. (d) State which model is winning and by how much.",
+    "Risk: (a) Define p10 and p90 tail scenarios. (b) Explain why tail risk matters for reserve deployment. (c) State the actual MW values: p10 = {downside_var_mw:,.0f} MW downside, p90 = {upside_var_mw:,.0f} MW upside. (d) State the Risk/Reward ratio of {risk_reward_ratio:.2f} and whether it favors deploying reserves or holding.",
     "Mandate: state your final operational decision in one crisp sentence. Do not restate anything from above."
   ],
 
@@ -148,7 +161,15 @@ QUALITY RULES — VIOLATIONS WILL BE REJECTED:
 - The historical_analysis array must reference each retrieved event BY NAME 
   (the event_type), state what physically happened, and explain specifically 
   why that precedent supports holding operations.
-- Write naturally as a senior risk analyst. Dense, expert-level analysis only."""
+- Write naturally as a senior risk analyst. Dense, expert-level analysis only.
+
+METRIC EXPLANATION RULE — for EVERY mathematical term you mention (WAPE, 
+Model Divergence, Anomaly Severity Score, Sharpness, etc.) you MUST explain 
+it in this exact 4-part structure:
+  (a) DEFINITION: What is this metric? One sentence in plain English.
+  (b) SIGNIFICANCE: What does it physically mean for the grid?
+  (c) CALCULATION: Show the exact formula and plug in the actual numbers.
+  (d) INTERPRETATION: What should the stakeholder conclude from this value?"""
 
 
 CONSERVATIVE_ADVISORY_HUMAN = """
@@ -200,8 +221,9 @@ Issue your advisory as a JSON object with EXACTLY these keys (no extra keys):
 
   "advisory_note": [
     "Opening: describe what is physically happening on the grid right now. What does the load look like? Do NOT state your conclusion yet.",
-    "Math: the Model Divergence of {variance_magnitude_pct:.1f}% was computed as the mean absolute percentage difference between Chronos and SARIMA MW forecasts across the horizon. The Anomaly Severity Score of {anomaly_severity_score:.2f} was computed as 0.4×divergence + 0.35×WAPE_delta + 0.25×sharpness. Explain what these numbers mean for grid operations.",
-    "Confidence: explain what low confidence physically means — the models disagree on load direction, which makes any operational change risky. Explain why the score of {anomaly_severity_score:.2f} is below the 0.40 threshold.",
+    "Math — Model Divergence: (a) Define what Model Divergence is in plain English. (b) Explain why a stakeholder should care. (c) Show the formula: mean(|Chronos_MW − SARIMA_MW| / SARIMA_MW) × 100 and plug in actual average MW values to show how {variance_magnitude_pct:.1f}% was derived. (d) State whether this level of divergence warrants action.",
+    "Math — Anomaly Severity Score: (a) Define what it is. (b) Explain it is the master decision signal. (c) Show: Severity = 0.4×DivergenceSignal + 0.35×WAPEDeltaSignal + 0.25×SharpnessSignal, plug in the actual signal values to show how {anomaly_severity_score:.2f} was derived. State the 0.40 threshold. (d) Tell the stakeholder we are below threshold so no action is needed.",
+    "Confidence: explain what low confidence physically means — the models disagree on load direction, which makes any operational change risky. Explain why the score of {anomaly_severity_score:.2f} is below the 0.40 threshold and what a stakeholder should take away from this.",
     "Decision: state that we are holding current operations in one sentence. Do not repeat anything from above."
   ],
 
