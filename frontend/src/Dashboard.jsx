@@ -616,29 +616,17 @@ function HistoricalSimilarity({ result }) {
   // Generate a human-readable similarity explanation for each event
   function getSimilarityReason(event) {
     const impact = parseFloat(event.demand_impact_pct) || 0;
-    const impactDir = impact > 0 ? 'upward' : impact < 0 ? 'downward' : 'neutral';
-    const currentDir = direction.includes('HIGHER') ? 'upward' : direction.includes('LOWER') ? 'downward' : 'neutral';
+    const impactDir = impact > 0 ? 'an unexpected spike' : impact < 0 ? 'an unexpected drop' : 'a neutral shift';
+    const currentDir = direction.includes('HIGHER') ? 'spike' : direction.includes('LOWER') ? 'drop' : 'neutral';
     
-    const reasons = [];
+    let reason = `The AI pulled this event from the archives because it occurred during a highly similar ${regime.toLowerCase()} weather pattern. `;
     
-    // Direction match
-    if (impactDir === currentDir) {
-      reasons.push(`Both events show ${impactDir} demand pressure, indicating a similar grid stress pattern.`);
-    } else if (impactDir !== 'neutral' && currentDir !== 'neutral') {
-      reasons.push(`While this historical event showed ${impactDir} pressure (${impact > 0 ? '+' : ''}${impact}%), the current anomaly trends ${currentDir} — the AI matched on seasonal and contextual similarity.`);
+    if (impactDir.includes(currentDir)) {
+       reason += `Just like our current forecast, this past event featured ${impactDir} in electricity demand, allowing the AI to study how the grid reacted to this stress.`;
+    } else {
+       reason += `Even though this past event featured ${impactDir} (instead of our forecasted ${currentDir}), the underlying weather and grid stress conditions were nearly identical, providing a perfect test case for the AI to learn from.`;
     }
-    
-    // Severity context
-    const sevMap = { 'CRITICAL': 'extreme', 'HIGH': 'significant', 'MEDIUM': 'moderate', 'LOW': 'minor' };
-    const sevWord = sevMap[event.severity] || 'notable';
-    reasons.push(`This ${sevWord}-severity historical event provides calibration for the AI's risk assessment during the ${regime.toLowerCase()} period.`);
-
-    // Region context
-    if (event.grid_region) {
-      reasons.push(`Occurred in the ${event.grid_region} region, within the same interconnection as the current analysis.`);
-    }
-
-    return reasons.join(' ');
+    return reason;
   }
 
   return (
@@ -666,26 +654,33 @@ function HistoricalSimilarity({ result }) {
           const sevClass = `sev-${(event.severity || 'medium').toLowerCase()}`;
           return (
             <div key={i} className="similarity-card">
-              <div className="similarity-card-header">
-                <div className="similarity-card-title">
-                  <strong>{event.event_type}</strong>
-                  <span className={`sev ${sevClass}`}>{event.severity}</span>
-                </div>
-                <div className="similarity-card-meta">
-                  <span className="impact">{parseFloat(event.demand_impact_pct) > 0 ? '+' : ''}{event.demand_impact_pct}% impact</span>
-                  {event.grid_region && <span className="impact">{event.grid_region}</span>}
-                </div>
-              </div>
-              
-              <p className="similarity-card-desc">{event.description}</p>
-              
-              <div className="similarity-basis">
-                <span className="similarity-basis-label">
-                  <i className="dot" style={{ width: '6px', height: '6px', background: 'var(--accent-cyan)', display: 'inline-block', marginRight: '6px' }} />
-                  Why This Matched
+              <div className="similarity-basis" style={{ background: 'none', padding: 0, border: 'none', marginBottom: '16px' }}>
+                <span className="similarity-basis-label" style={{ fontSize: '14px', color: 'var(--text-primary)', marginBottom: '8px' }}>
+                  <i className="dot" style={{ width: '8px', height: '8px', background: 'var(--accent-cyan)', display: 'inline-block', marginRight: '8px' }} />
+                  Historical Precedent
                 </span>
-                <p className="similarity-basis-text">{getSimilarityReason(event)}</p>
+                <p className="similarity-basis-text" style={{ fontSize: '14px', lineHeight: '1.6', color: 'var(--text-secondary)' }}>{getSimilarityReason(event)}</p>
               </div>
+              
+              <details style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+                <summary style={{ fontSize: '12px', color: 'var(--text-tertiary)', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 'bold' }}>
+                  Click to view full event details
+                </summary>
+                
+                <div style={{ marginTop: '16px' }}>
+                  <div className="similarity-card-header" style={{ marginBottom: '12px' }}>
+                    <div className="similarity-card-title">
+                      <strong style={{ color: 'var(--text-primary)' }}>{event.event_type}</strong>
+                      <span className={`sev ${sevClass}`}>{event.severity}</span>
+                    </div>
+                    <div className="similarity-card-meta">
+                      <span className="impact">{parseFloat(event.demand_impact_pct) > 0 ? '+' : ''}{event.demand_impact_pct}% impact</span>
+                      {event.grid_region && <span className="impact">{event.grid_region}</span>}
+                    </div>
+                  </div>
+                  <p className="similarity-card-desc" style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0 }}>{event.description}</p>
+                </div>
+              </details>
             </div>
           );
         })}
