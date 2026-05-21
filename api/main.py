@@ -47,7 +47,7 @@ async def health():
 
     # Check if any Celery workers are alive
     try:
-        ping_resp = celery_app.control.ping(timeout=1.0)
+        ping_resp = celery_app.control.ping(timeout=3.0)
         celery_status = 'connected' if ping_resp else 'disconnected'
     except Exception:
         celery_status = 'disconnected'

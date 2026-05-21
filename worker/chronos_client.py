@@ -99,11 +99,24 @@ class LocalChronosClient(BaseChronosClient):
         if self.pipeline is None:
             from chronos import BaseChronosPipeline
             logger.info(f'Lazy loading Chronos model ({self.model_name})...')
-            self.pipeline = BaseChronosPipeline.from_pretrained(
-                self.model_name,
-                device_map=self.device,
-                torch_dtype=torch.float32,
-            )
+            try:
+                self.pipeline = BaseChronosPipeline.from_pretrained(
+                    self.model_name,
+                    device_map=self.device,
+                    torch_dtype=torch.float32,
+                )
+            except Exception as e:
+                fallback = "amazon/chronos-t5-base"
+                logger.warning(
+                    f"Failed to load model '{self.model_name}': {e}. "
+                    f"Falling back to '{fallback}'."
+                )
+                self.model_name = fallback
+                self.pipeline = BaseChronosPipeline.from_pretrained(
+                    fallback,
+                    device_map=self.device,
+                    torch_dtype=torch.float32,
+                )
 
         _validate_forecast_request(prediction_length, num_samples)
         context = _prepare_context(context_series, context_limit=512)
@@ -116,18 +129,28 @@ class LocalChronosClient(BaseChronosClient):
         )
         quantile_array = quantiles.detach().cpu().numpy().squeeze(0)
 
-        if quantile_array.shape != (prediction_length, 3):
+        # Handle both (prediction_length, 3) and (3, prediction_length) shapes
+        if quantile_array.shape == (prediction_length, 3):
+            p10 = quantile_array[:, 0]
+            p50 = quantile_array[:, 1]
+            p90 = quantile_array[:, 2]
+        elif quantile_array.shape == (3, prediction_length):
+            p10 = quantile_array[0, :]
+            p50 = quantile_array[1, :]
+            p90 = quantile_array[2, :]
+        else:
             msg = (
                 "Chronos local response had unexpected quantile shape "
-                f"{quantile_array.shape}; expected ({prediction_length}, 3)"
+                f"{quantile_array.shape}; expected ({prediction_length}, 3) "
+                f"or (3, {prediction_length})"
             )
             raise RuntimeError(msg)
 
         return {
-            "p10": quantile_array[:, 0],
-            "p50": quantile_array[:, 1],
-            "p90": quantile_array[:, 2],
-            "quantile_samples": quantile_array.tolist(),  # shape: (prediction_length, 3) — columns are [p10, p50, p90]
+            "p10": p10,
+            "p50": p50,
+            "p90": p90,
+            "quantile_samples": quantile_array.tolist(),
         }
 
 
@@ -279,14 +302,16 @@ class ChronosClient(APIChronosClient):
 
 def get_chronos_client() -> BaseChronosClient:
     """Create the configured Chronos client. Local mode is the default."""
-    from dotenv import load_dotenv
-    load_dotenv()
+    # Do NOT call load_dotenv() here — in production, HF Spaces injects secrets
+    # as env vars. The .env file may contain stale local-dev paths that break
+    # model loading inside Docker.
     
     mode = os.getenv("CHRONOS_MODE", "local").strip().lower()
     logger.info("Chronos mode active: {}", mode)
 
     if mode == "local":
         model_name = os.getenv("CHRONOS_MODEL_NAME", "amazon/chronos-t5-base")
+        logger.info("Chronos model name resolved to: {}", model_name)
         return LocalChronosClient(model_name=model_name)
 
     if mode == "api":

@@ -23,6 +23,5 @@ celery_app.conf.update(
     worker_max_tasks_per_child=50,  # Restart worker process every 50 tasks — prevents memory leaks
     task_soft_time_limit=300,    # Warn at 5 minutes
     task_time_limit=600,         # Hard kill at 10 minutes
-    worker_pool='solo',
     broker_connection_retry_on_startup=True,
 )
