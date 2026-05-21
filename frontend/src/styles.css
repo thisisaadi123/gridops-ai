@@ -692,7 +692,7 @@ a { color: var(--accent-cyan); text-decoration: none; }
 /* ═══ TRADING TERMINAL LAYOUT ═══ */
 .ticker-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   background: rgba(0, 0, 0, 0.4);
   padding: 16px;
@@ -826,7 +826,7 @@ a { color: var(--accent-cyan); text-decoration: none; }
 
 @media (max-width: 834px) {
   .terminal-split-view { grid-template-columns: 1fr; }
-  .ticker-row { grid-template-columns: repeat(2, 1fr); }
+  .ticker-row { grid-template-columns: repeat(3, 1fr); }
   .chart-pair { grid-template-columns: 1fr; }
   .summary-grid { grid-template-columns: 1fr; }
 
@@ -920,6 +920,7 @@ a { color: var(--accent-cyan); text-decoration: none; }
     justify-content: center;
   }
   .ticker-row { grid-template-columns: 1fr; }
+  .similarity-grid { grid-template-columns: 1fr; }
   .severity-col { flex-direction: column; align-items: flex-start; gap: 16px; }
   .chart-toggle-btn { position: relative; top: 0; right: 0; margin-bottom: 16px; width: 100%; }
   .metric-value { font-size: 24px !important; }

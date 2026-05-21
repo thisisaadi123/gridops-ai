@@ -31,8 +31,6 @@ export function Dashboard({ result, elapsed, onNew, onExport, horizon }) {
         <Metric label="Chronos AI Error" value={pct(result.chronos_wape)}
           help={`The error margin of the deep learning model. ${num(result.chronos_wape) <= num(result.sarima_wape) ? 'A lower percentage means the AI outperformed the baseline.' : 'The baseline was more accurate on this run.'}`}
           tone={num(result.chronos_wape) <= num(result.sarima_wape) ? 'good' : 'bad'} />
-        <Metric label="Historical Backtest" value={pct(result.sarima_backtest_wape)}
-          help="The baseline model's average error when tested against historical grid data. This validates the reliability of the baseline." />
         <Metric label="AI Forecast Confidence" value={`${result.trading_mandate?.confidence_score || 0}%`}
           help="The AI's conviction level for active grid intervention. A low score means the grid is stable (maintain ops). A high score indicates severe instability." />
       </div>
@@ -95,23 +93,6 @@ export function Dashboard({ result, elapsed, onNew, onExport, horizon }) {
             showHistory={showHistory}
           />
         </div>
-      </div>
-
-      {/* Bottom Row: Drill down charts */}
-      <div className="chart-pair" style={{ marginBottom: '24px' }}>
-        <ChartCard title="SARIMA Forecast vs Actual" help="The classical model's linear prediction compared against real demand.">
-          <SvgChart series={[
-            { name: 'Actual', data: nums(result.holdout_data), color: '#ffffff', w: 1.5 },
-            { name: 'SARIMA', data: nums(result.sarima_forecast), color: '#f59e0b', w: 1.5 },
-          ]} labels={result.forecast_dates} />
-        </ChartCard>
-        <ChartCard title="Chronos Forecast vs Actual" help="The deep learning model with 80% confidence interval (shaded region).">
-          <SvgChart series={[
-            { name: 'Actual', data: nums(result.holdout_data), color: '#ffffff', w: 1.5 },
-            { name: 'Chronos (p50)', data: nums(result.chronos_p50), color: '#38bdf8', w: 1.5 },
-          ]} labels={result.forecast_dates}
-            band={{ lo: nums(result.chronos_p10), hi: nums(result.chronos_p90) }} />
-        </ChartCard>
       </div>
 
       <AnalysisTabs result={result} />
@@ -673,9 +654,8 @@ function HistoricalSimilarity({ result }) {
 }
 
 function AnalysisTabs({ result }) {
-  const [tab, setTab] = useState('summary');
+  const [tab, setTab] = useState('divergence');
   const tabs = [
-    ['summary', 'Executive Summary'],
     ['divergence', 'Divergence Report'],
     ['seasonality', 'Seasonality Analysis'],
   ];
@@ -688,30 +668,10 @@ function AnalysisTabs({ result }) {
         ))}
       </div>
       <div className="tab-content glass-card" style={{ padding: '32px' }}>
-        {tab === 'summary' && <SummaryTab result={result} />}
         {tab === 'divergence' && <DivergenceTab result={result} />}
         {tab === 'seasonality' && <SeasonalityTab result={result} />}
       </div>
     </section>
-  );
-}
-
-function SummaryTab({ result }) {
-  return (
-    <div className="summary-grid">
-      <div className="summary-item">
-        <strong>Anomaly Detection</strong>
-        <p>The system executed a parallel analysis of historical data and deep learning probabilities. {num(result.anomaly_severity_score) >= num(result.severity_threshold || 0.4) ? 'A significant anomaly was detected that surpassed the defined risk tolerance threshold.' : 'No significant structural anomalies were detected beyond standard market noise.'}</p>
-      </div>
-      <div className="summary-item">
-        <strong>Primary Risk Driver</strong>
-        <p>{result.seasonal_risk_factor || 'Continuous monitoring of model convergence is advised to detect emerging physical grid risks.'}</p>
-      </div>
-      <div className="summary-item">
-        <strong>Mandate Justification</strong>
-        <p>The composite severity score computed to {num(result.anomaly_severity_score).toFixed(2)}. As this is {num(result.anomaly_severity_score) >= num(result.severity_threshold || 0.4) ? 'above' : 'below'} the designated threshold of {num(result.severity_threshold || 0.4).toFixed(2)}, the pipeline routed execution to the {num(result.anomaly_severity_score) < 0.4 ? 'Conservative Advisory node, yielding a MAINTAIN OPS mandate to mitigate exposure.' : 'Strategy Formulator node, yielding a directive to actively adjust grid position.'}</p>
-      </div>
-    </div>
   );
 }
 
