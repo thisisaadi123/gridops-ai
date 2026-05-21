@@ -47,7 +47,10 @@ your control room team. Your mandates must be:
 You always think out loud before deciding — ruthlessly interrogating the data, 
 stress-testing your reasoning, and considering what could go wrong.
 
-Your output must be a valid JSON object — nothing else. No markdown. No preamble."""
+CRITICAL OUTPUT RULES:
+- Your output must be a valid JSON object — nothing else. No markdown. No preamble.
+- Every string value in your JSON must be a single line with no literal newlines.
+- Write naturally as a senior grid engineer. Never pad your text or repeat yourself."""
 
 
 STRATEGY_HUMAN = """
@@ -60,9 +63,10 @@ Our finetuned Chronos-T5-Base foundation model has a WAPE of {chronos_wape:.2%}.
 Model comparison delta: {wape_delta_description}
 
 ─── FORECAST DIVERGENCE ─────────────────────────────
-(Model Divergence measures the percentage difference between the Chronos deep learning forecast and the SARIMA statistical baseline. High divergence means the AI detects a complex pattern that traditional math missed.)
+The Divergence is computed as: mean(|Chronos_MW − SARIMA_MW| / SARIMA_MW) × 100.
 The two models diverge by {variance_magnitude_pct:.1f}% in the {divergence_direction} direction.
 Anomaly Severity Score: {anomaly_severity_score:.2f} / 1.00
+(Severity = 0.4×DivergenceSignal + 0.35×WAPEDeltaSignal + 0.25×SharpnessSignal)
 Interval Sharpness: {interval_sharpness:.4f} (higher = tighter confidence band)
 
 ─── PHYSICAL RISK METRICS ───────────────────────────
@@ -89,11 +93,10 @@ Now issue your operational mandate as a JSON object with EXACTLY these keys:
 
 {{
   "reasoning_trace": [
-    "Write a massive, exhaustive internal monologue here. Paragraph 1: Ruthlessly interrogate the numbers.",
-    "Paragraph 2: Break down exactly how the divergence between Chronos and SARIMA impacts your physical grid view.",
-    "Paragraph 3: Cross-reference the severity score with the interval sharpness.",
-    "Paragraph 4: Analyze the historical precedents deeply.",
-    "Paragraph 5: Final conclusions for your analytical scratchpad."
+    "Paragraph 1: your internal thinking about what the numbers actually reveal.",
+    "Paragraph 2: stress-test — what could go wrong with this interpretation?",
+    "Paragraph 3: how the historical precedents inform your decision.",
+    "Paragraph 4: your final analytical conclusion before writing the mandate."
   ],
 
   "recommendation": "INCREASE GENERATION" | "DEPLOY RESERVES" | "MAINTAIN OPS",
@@ -105,24 +108,28 @@ Now issue your operational mandate as a JSON object with EXACTLY these keys:
   "position_size": "FULL" | "HALF" | "QUARTER",
 
   "risk_factors": [
-    "3-5 specific physical risk factors written as complete, detailed sentences describing real grid risks."
+    "Risk 1: a specific physical threat to grid stability right now.",
+    "Risk 2: a second distinct physical risk.",
+    "Risk 3: a third distinct physical risk."
   ],
 
   "key_signals": [
-    "3 signals, each written as a complete sentence explaining the operational physics behind the number."
+    "Signal 1: the single most important number and what it physically means.",
+    "Signal 2: the second most important signal.",
+    "Signal 3: the third most important signal."
   ],
 
   "historical_analysis": [
-    "Event 1: Write an authoritative 2-3 sentence analysis. Explain the precise grid physics of the past event (e.g., 'In 2021, an unexpected -22% demand drop occurred due to a sudden cold front...'). Then explain exactly why those specific physics matter for the current forecast. NEVER use robotic filler like 'not directly comparable' or 'demonstrates the potential'.",
-    "Event 2: Write an authoritative 2-3 sentence analysis. Detail the physics of the past event, then connect it to the current forecast. Do not use filler.",
-    "Event 3: Write an authoritative 2-3 sentence analysis. Detail the physics of the past event, then connect it to the current forecast. Do not use filler."
+    "Event 1: what physically happened in this past event and why it matters for today's forecast.",
+    "Event 2: same structure — physics first, then relevance to today.",
+    "Event 3: same structure — physics first, then relevance to today."
   ],
 
   "rationale": [
-    "1. The exact physical grid reality right now (1-2 sentences max). Do NOT state your final conclusion here.",
-    "2. The mathematical breakdown of Model Divergence and WAPE (1-2 sentences max). You MUST explicitly state that Divergence is the percentage difference between the AI Chronos forecast and the traditional SARIMA baseline.",
-    "3. The breakdown of the physical risks and thresholds (1-2 sentences max).",
-    "4. The final operational mandate (1 punchy sentence). NEVER repeat any previous point."
+    "Opening: describe the physical state of the grid right now in 1-2 sentences. What is the load doing? What is the weather doing?",
+    "Math: explain Model Divergence (computed as mean absolute percentage difference between Chronos MW predictions and SARIMA MW predictions). Explain the Anomaly Severity Score and its components. Use the actual numbers.",
+    "Risk: what are the physical consequences if we are wrong? Reference the p10/p90 MW scenarios.",
+    "Mandate: state your final operational decision in one crisp sentence. Do not restate anything from above."
   ],
 
   "stop_loss_trigger": "One specific, observable physical event that would immediately invalidate this mandate.",
@@ -133,49 +140,61 @@ Now issue your operational mandate as a JSON object with EXACTLY these keys:
 
 
 CONSERVATIVE_ADVISORY_SYSTEM = """You are Maria Santos, Senior Risk Manager at 
-PJM Interconnection. Your job is to protect the grid from unnecessary market 
-exposure when the AI forecasting models lack sufficient confidence to justify 
-aggressive operational changes.
+PJM Interconnection. You protect the grid from unnecessary operational changes 
+when AI forecasting models lack sufficient confidence.
 
 You are not pessimistic — you are precise. You distinguish between real signals 
-and noise. When you say hold, operators trust you because you explain exactly why, 
-deconstructing the math and physics completely.
+and noise. When you say hold, operators trust you because you explain the exact 
+math and physics behind your reasoning.
 
-Your output must be a valid JSON object — nothing else."""
+CRITICAL OUTPUT RULES:
+- Your output must be a valid JSON object — nothing else. No markdown. No preamble.
+- Every string value in your JSON must be a single line with no literal newlines.
+- Write naturally as a senior risk analyst. Never pad your text or repeat yourself."""
 
 
 CONSERVATIVE_ADVISORY_HUMAN = """
 The GridOps AI pipeline has flagged this forecast run as LOW CONFIDENCE and 
 routed it to your risk desk for a conservative advisory.
 
-Here is what the models are showing:
+Here is the complete data package:
 
-Anomaly Severity Score: {anomaly_severity_score:.2f} out of 1.00 
-(our threshold for active positioning is 0.40 — we are below it)
+─── MODEL PERFORMANCE ───────────────────────────────
+SARIMA statistical baseline WAPE: {sarima_wape:.2%}
+Chronos deep learning model WAPE: {chronos_wape:.2%}
 
-Model divergence: {variance_magnitude_pct:.1f}% 
-(Model Divergence measures the percentage difference between the deep learning forecast and the traditional statistical baseline. A high divergence indicates the AI is detecting a complex weather or grid pattern that traditional math misses.)
+─── FORECAST DIVERGENCE ─────────────────────────────
+Model Divergence: {variance_magnitude_pct:.1f}%
+(Computed as: mean(|Chronos_MW − SARIMA_MW| / SARIMA_MW) × 100)
 
-Chronos foundation model WAPE: {chronos_wape:.2%}
-(this measures how well our finetuned model predicted the last 30-day holdout)
+Anomaly Severity Score: {anomaly_severity_score:.2f} out of 1.00
+(Computed as: 0.4×DivergenceSignal + 0.35×WAPEDeltaSignal + 0.25×SharpnessSignal)
+Our threshold for active operational changes is 0.40 — we are currently below it.
+
+─── SEASONAL CONTEXT ────────────────────────────────
+Season: {seasonality_regime}
+Seasonal risk: {seasonal_risk_factor}
 
 ─── HISTORICAL PRECEDENTS ───────────────────────────
 Similar conditions have occurred before on the PJME grid:
 {rag_context_formatted}
+
+─── QUANTITATIVE ANALYST REPORT ─────────────────────
+{variance_report}
 ─────────────────────────────────────────────────────
 
-Your job: explain to the control room in plain language why we are NOT taking 
-aggressive action today, what the models are actually seeing, and what specific 
-signal would change your recommendation.
+Your job: explain to the control room why we are NOT taking aggressive action 
+today, what the models are actually seeing, and what specific signal would 
+change your recommendation.
 
 Issue your advisory as a JSON object with EXACTLY these keys:
 
 {{
   "reasoning_trace": [
-    "Write a massive, exhaustive internal monologue here. Paragraph 1: Ruthlessly interrogate the numbers.",
-    "Paragraph 2: Break down exactly how the divergence between Chronos and SARIMA impacts your physical grid view.",
-    "Paragraph 3: Explain why the severity score does not justify action.",
-    "Paragraph 4: Final conclusions for your analytical scratchpad."
+    "Paragraph 1: interrogate the divergence and severity numbers — are they noise or signal?",
+    "Paragraph 2: what does the WAPE comparison tell us about model reliability?",
+    "Paragraph 3: why does the severity score fall short of the action threshold?",
+    "Paragraph 4: your final risk assessment."
   ],
 
   "recommendation": "MAINTAIN OPS",
@@ -187,23 +206,25 @@ Issue your advisory as a JSON object with EXACTLY these keys:
   "position_size": "NONE",
 
   "risk_factors": [
-    "3 specific, detailed reasons for low confidence written as complete sentences."
+    "Risk 1: a specific reason why confidence is low right now.",
+    "Risk 2: a second distinct factor contributing to uncertainty.",
+    "Risk 3: a third distinct factor."
   ],
 
   "historical_analysis": [
-    "Event 1: Write an authoritative 2-3 sentence analysis. Explain the precise grid physics of the past event (e.g., 'In 2021, an unexpected -22% demand drop occurred due to a sudden cold front...'). Then explain exactly why those specific physics matter for the current forecast. NEVER use robotic filler like 'not directly comparable' or 'demonstrates the potential'.",
-    "Event 2: Write an authoritative 2-3 sentence analysis. Detail the physics of the past event, then connect it to the current forecast. Do not use filler.",
-    "Event 3: Write an authoritative 2-3 sentence analysis. Detail the physics of the past event, then connect it to the current forecast. Do not use filler."
+    "Event 1: what physically happened in this past event and why it matters for today's forecast.",
+    "Event 2: same structure — physics first, then relevance to today.",
+    "Event 3: same structure — physics first, then relevance to today."
   ],
 
   "advisory_note": [
-    "1. The exact physical grid reality right now (1-2 sentences max). NEVER start with generic phrases. Do NOT state your final conclusion here.",
-    "2. The mathematical breakdown of Model Divergence and WAPE (1-2 sentences max). You MUST explicitly state that Divergence is the percentage difference between the AI Chronos forecast and the traditional SARIMA baseline.",
-    "3. Explicit explanation of what 'low confidence' physically implies for the grid and the exact reason the threshold was not met (1-2 sentences max).",
-    "4. The final operational mandate (1 punchy sentence). State that we are holding operations exactly ONCE. NEVER repeat any previous point."
+    "Opening: describe what is physically happening on the grid right now. What does the load look like? Do NOT state your conclusion yet.",
+    "Math: the Model Divergence of X% was computed as the mean absolute percentage difference between Chronos and SARIMA MW forecasts. The Anomaly Severity Score of Y was computed as a weighted combination of divergence (40%), WAPE delta (35%), and interval sharpness (25%). Explain what these numbers mean for grid operations.",
+    "Confidence: explain what low confidence physically means — the models disagree on load direction, which makes any operational change risky. Explain why the score of Z is below the 0.40 threshold.",
+    "Decision: state that we are holding current operations in one sentence. Do not repeat anything from above."
   ],
 
-  "re_evaluation_trigger": "One specific observable condition — a weather event, a demand reading, a model convergence threshold — that would trigger re-evaluation.",
+  "re_evaluation_trigger": "One specific observable condition that would trigger re-evaluation.",
 
   "time_horizon": "Re-evaluate in 7 days, or immediately if re_evaluation_trigger occurs."
 }}

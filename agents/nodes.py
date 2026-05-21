@@ -24,7 +24,7 @@ def _get_llm() -> ChatOpenAI:
         base_url=settings.groq_base_url,
         api_key=settings.groq_api_key,
         openai_api_key=settings.groq_api_key,
-        temperature=0.2,
+        temperature=0.4,
         max_tokens=4096,
     )
 
@@ -406,7 +406,11 @@ def conservative_advisory_node(state: GridOpsState) -> dict:
         HumanMessage(content=CONSERVATIVE_ADVISORY_HUMAN.format(
             anomaly_severity_score=state.get("anomaly_severity_score", 0),
             variance_magnitude_pct=state.get("variance_magnitude_pct", 0),
+            sarima_wape=state.get("sarima_wape", 0),
             chronos_wape=state.get("chronos_wape", 0),
+            seasonality_regime=state.get("seasonality_regime", "SHOULDER"),
+            seasonal_risk_factor=state.get("seasonal_risk_factor", ""),
+            variance_report=state.get("variance_report", ""),
             rag_context_formatted=rag_context_formatted,
         )),
     ]
