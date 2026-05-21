@@ -562,10 +562,15 @@ function MandateCard({ result, horizontal = false }) {
   const rec = (m.recommendation || 'MAINTAIN OPS').toUpperCase();
   const recClass = rec.toLowerCase().replace(/\s+/g, '-');
   
-  // Strip old trading terminology from rationale
-  let rationale = (m.rationale || result.mandate_narrative || 'No rationale provided.')
-    .replace(/\*\*/g, '').replace(/\*/g, '');
-  rationale = rationale.replace(/^(BUY|SELL|HOLD|MAINTAIN OPS|INCREASE GENERATION|DEPLOY RESERVES)\s*[—:]\s*/i, '');
+  let rawRationale = m.rationale || result.mandate_narrative || 'No rationale provided.';
+  let rationaleArray = Array.isArray(rawRationale) ? rawRationale : [rawRationale];
+
+  const formattedRationale = rationaleArray.map(r => {
+    let text = typeof r === 'string' ? r : String(r);
+    text = text.replace(/\*\*/g, '').replace(/\*/g, '');
+    text = text.replace(/^(BUY|SELL|HOLD|MAINTAIN OPS|INCREASE GENERATION|DEPLOY RESERVES)\s*[—:]\s*/i, '');
+    return text;
+  });
     
   return (
     <div className={`mandate-card-wrapper ${horizontal ? 'horizontal-layout' : 'vertical-layout'}`}>
@@ -575,7 +580,9 @@ function MandateCard({ result, horizontal = false }) {
       </div>
       
       <div className="mandate-rationale-wrapper">
-        <p className="mandate-rationale">{rationale}</p>
+        {formattedRationale.map((p, i) => (
+          <p key={i} className="mandate-rationale" style={{ marginBottom: i < formattedRationale.length - 1 ? '12px' : 0 }}>{p}</p>
+        ))}
       </div>
     </div>
   );
