@@ -21,7 +21,7 @@ export function Dashboard({ result, elapsed, onNew, onExport, horizon }) {
         <div className="dash-header-right no-print">
           <button className="btn-secondary compact" onClick={onExport} type="button">Export Forecast CSV</button>
           <button className="btn-primary compact" onClick={onNew} type="button">Run New Analysis</button>
-          <button className="btn-primary compact" onClick={() => window.print()} type="button">Download Report (PDF)</button>
+          <button className="btn-primary compact" onClick={() => window.print()} type="button">Print to PDF</button>
         </div>
       </header>
 
@@ -248,7 +248,7 @@ function FullChart({ result, zoom, showHistory }) {
         {yTicks.map(t => {
           const yy = pad.t + t * (H - pad.t - pad.b);
           return (<g key={`y-${t}`}>
-            <line x1={pad.l} x2={W - pad.r} y1={yy} y2={yy} stroke="rgba(255,255,255,0.08)" />
+            <line x1={pad.l} x2={W - pad.r} y1={yy} y2={yy} stroke="var(--chart-grid)" />
             <text x={pad.l - 12} y={yy + 4} className="axis-text" textAnchor="end">{Math.round(mx - t * rng).toLocaleString()}</text>
           </g>);
         })}
@@ -258,7 +258,7 @@ function FullChart({ result, zoom, showHistory }) {
           const xx = pad.l + t * (W - pad.l - pad.r);
           const labelIdx = Math.floor(t * (combinedLabels.length - 1));
           return (<g key={`x-${t}`}>
-            <line x1={xx} x2={xx} y1={pad.t} y2={H - pad.b} stroke="rgba(255,255,255,0.03)" />
+            <line x1={xx} x2={xx} y1={pad.t} y2={H - pad.b} stroke="var(--chart-grid)" />
             <text x={xx} y={H - pad.b + 20} className="axis-text" textAnchor="middle">
               {shortDate(combinedLabels[labelIdx])}
             </text>
@@ -292,13 +292,13 @@ function FullChart({ result, zoom, showHistory }) {
         <path d={bandD} fill="rgba(56, 189, 248, 0.12)" stroke="rgba(56, 189, 248, 0.2)" strokeWidth="1" />
 
         {/* Historical actual demand */}
-        <path d={histActualPath} fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={histActualPath} fill="none" stroke="var(--chart-actual-alpha)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
 
         {/* Connection line */}
-        <path d={connectionPath} fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1" strokeDasharray="4 3" />
+        <path d={connectionPath} fill="none" stroke="var(--chart-actual-alpha)" strokeWidth="1" strokeDasharray="4 3" />
 
         {/* Forecast actual demand */}
-        <path d={fcActualPath} fill="none" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={fcActualPath} fill="none" stroke="var(--chart-actual)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
 
         {/* Forecast SARIMA */}
         <path d={fcSarimaPath} fill="none" stroke="#f59e0b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -466,7 +466,7 @@ function SvgChart({ series, labels = [], band = null, tall = false, zoom = false
           const yy = pad.t + t * (H - pad.t - pad.b);
           const isMajor = t === 0 || t === 0.25 || t === 0.5 || t === 0.75 || t === 1;
           return (<g key={`y-${t}`}>
-            <line x1={pad.l} x2={W - pad.r} y1={yy} y2={yy} className="grid-line" strokeDasharray={isMajor ? "" : "4 4"} stroke={isMajor ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.03)"} />
+            <line x1={pad.l} x2={W - pad.r} y1={yy} y2={yy} className="grid-line" strokeDasharray={isMajor ? "" : "4 4"} stroke="var(--chart-grid)" />
             {isMajor && <text x={pad.l - 12} y={yy + 4} className="axis-text" textAnchor="end">{Math.round(mx - t * rng).toLocaleString()}</text>}
           </g>);
         })}
@@ -474,7 +474,7 @@ function SvgChart({ series, labels = [], band = null, tall = false, zoom = false
         {xTicks.map(t => {
             const xx = pad.l + t * (W - pad.l - pad.r);
             return (<g key={`x-${t}`}>
-              <line x1={xx} x2={xx} y1={pad.t} y2={H - pad.b} className="grid-line" stroke="rgba(255,255,255,0.03)" />
+              <line x1={xx} x2={xx} y1={pad.t} y2={H - pad.b} className="grid-line" stroke="var(--chart-grid)" />
               <text x={xx} y={H - pad.b + 20} className="axis-text" textAnchor="middle">
                 {shortDate(labels[Math.floor(t * (labels.length - 1))])}
               </text>
@@ -735,13 +735,13 @@ function DivergenceTab({ result }) {
         <div className="summary-item">
           <strong>Average SARIMA Forecast</strong>
           <div style={{ fontSize: '24px', color: 'var(--text-primary)', marginTop: '4px' }}>
-            {sarimaMw ? `${Math.round(sarimaMw).toLocaleString()} MW` : 'N/A'}
+            {sarimaMw !== 0 ? `${Math.round(sarimaMw).toLocaleString()} MW` : 'N/A'}
           </div>
         </div>
         <div className="summary-item">
           <strong>Average Chronos Forecast</strong>
           <div style={{ fontSize: '24px', color: 'var(--accent-blue)', marginTop: '4px' }}>
-            {chronosMw ? `${Math.round(chronosMw).toLocaleString()} MW` : 'N/A'}
+            {chronosMw !== 0 ? `${Math.round(chronosMw).toLocaleString()} MW` : 'N/A'}
           </div>
         </div>
         <div className="summary-item">

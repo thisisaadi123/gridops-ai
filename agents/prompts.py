@@ -127,9 +127,9 @@ Now issue your operational mandate as a JSON object with EXACTLY these keys (no 
   ],
 
   "rationale": [
-    "Opening: describe the physical state of the grid right now in 1-2 sentences. What is the load doing? What is the weather doing?",
+    "Opening: Describe the grid's current state in 1 sentence using ONLY the provided season and load data. DO NOT make up specific transmission lines, voltages, or hardware limits.",
     "Model Divergence: Define what it is, explain why it matters, show the actual calculation using the average MW values, and state if it is actionable or noise.",
-    "Anomaly Severity Score: Define it as our master signal, show the weighted calculation (0.4×Div + 0.35×WAPE + 0.25×Sharpness) with actual values, and conclude what the score means against our 0.40 threshold.",
+    "Anomaly Severity Score: Define it as our master signal. State the final score provided in the data. Explain conceptually that it combines divergence, accuracy, and sharpness, but DO NOT write out the math equation. Conclude what the score means against our 0.40 threshold.",
     "WAPE: Define it as our accuracy metric, state the values for both models, and state which model is winning and by how much.",
     "Risk: Define p10 and p90 tail scenarios, state their actual MW values, calculate the Risk/Reward ratio, and conclude if we should deploy reserves or hold.",
     "Mandate: state your final operational decision in one crisp sentence."
