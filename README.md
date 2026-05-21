@@ -1,16 +1,3 @@
----
-title: GridOps AI
-emoji: ⚡
-colorFrom: indigo
-colorTo: blue
-sdk: docker
-app_port: 7860
-pinned: false
-short_description: Energy grid intelligence via Chronos & LangGraph
----
-
-<div align="center">
-
 # ⚡ GridOps AI
 
 ### Autonomous Energy Grid Intelligence
@@ -21,7 +8,6 @@ short_description: Energy grid intelligence via Chronos & LangGraph
 [![Backend API](https://img.shields.io/badge/🔧_Backend_API-HuggingFace_Spaces-yellow?style=for-the-badge)](https://huggingface.co/spaces/thisisaadi123/gridops-ai)
 [![GitHub](https://img.shields.io/badge/📦_Source-GitHub-181717?style=for-the-badge)](https://github.com/thisisaadi123/gridops-ai)
 
-</div>
 
 ---
 
