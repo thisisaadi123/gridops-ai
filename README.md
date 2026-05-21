@@ -1,3 +1,14 @@
+---
+title: GridOps AI
+emoji: ⚡
+colorFrom: indigo
+colorTo: blue
+sdk: docker
+app_port: 7860
+pinned: false
+short_description: Energy grid intelligence via Chronos & LangGraph
+---
+
 # GridOps AI
 
 ### Autonomous Energy Grid Intelligence
