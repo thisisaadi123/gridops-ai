@@ -54,6 +54,7 @@ Synthesize the following intelligence into an operational grid mandate:
 
 Produce a JSON object with EXACTLY these keys:
 {{
+  "reasoning_trace": "A massive 3-4 paragraph internal monologue analyzing the quantitative signals, risk metrics, and historical events. Think step-by-step about the physical grid implications before formulating the final mandate.",
   "recommendation": "INCREASE GENERATION" | "DEPLOY RESERVES" | "MAINTAIN OPS",
   "contract_type": "DAY_AHEAD" | "REAL_TIME" | "CAPACITY_MARKET",
   "confidence_score": integer 0-100,
@@ -78,6 +79,7 @@ Chronos WAPE: {chronos_wape:.2%}
 
 Issue a conservative advisory JSON with EXACTLY these keys:
 {{
+  "reasoning_trace": "A massive 2-3 paragraph internal monologue analyzing the model divergence and anomaly severity. Think step-by-step about why the data is uncertain and why a conservative approach is mandatory.",
   "recommendation": "MAINTAIN OPS",
   "contract_type": "REAL_TIME",
   "confidence_score": integer 0-40,

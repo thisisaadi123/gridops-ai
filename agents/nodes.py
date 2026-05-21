@@ -25,7 +25,7 @@ def _get_llm() -> ChatOpenAI:
         api_key=settings.groq_api_key,
         openai_api_key=settings.groq_api_key,
         temperature=0.2,
-        max_tokens=1500,
+        max_tokens=4096,
     )
 
 
