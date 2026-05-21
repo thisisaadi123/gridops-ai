@@ -587,13 +587,6 @@ function MandateCard({ result, horizontal = false }) {
       <div className="mandate-content">
         <span className="kicker" style={{ margin: 0 }}>Generated Grid Mandate</span>
         <h2 className={`rec-text rec-${recClass}`}>{rec}</h2>
-        
-        <div className="mandate-facts" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '4px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '4px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-            <span style={{ color: 'var(--text-secondary)', fontSize: '11px' }}>Contract Phase</span>
-            <strong style={{ fontSize: '12px' }}>{m.contract_type || 'SPOT'}</strong>
-          </div>
-        </div>
       </div>
       
       <div className="mandate-rationale-wrapper">
@@ -626,12 +619,6 @@ function HistoricalSimilarity({ result }) {
             The RAG retriever searched the vector database for events semantically similar to the current anomaly pattern. Below are the historical precedents the AI used to calibrate its recommendation.
           </p>
         </div>
-      </div>
-      
-      {/* Semantic Query Used */}
-      <div className="similarity-query-box">
-        <span className="similarity-query-label">Semantic Search Query</span>
-        <code className="similarity-query-text">{query || `${direction.toLowerCase().replace('_', ' ')} magnitude ${magnitude.toFixed(0)}% ${regime.toLowerCase()} season`}</code>
       </div>
 
       {/* Event Match Cards */}

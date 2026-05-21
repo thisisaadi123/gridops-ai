@@ -44,9 +44,6 @@ your control room team. Your mandates must be:
 - Actionable (operators know exactly what to do)
 - Honest about uncertainty (never overstate confidence)
 
-You always think out loud before deciding — ruthlessly interrogating the data, 
-stress-testing your reasoning, and considering what could go wrong.
-
 CRITICAL OUTPUT RULES:
 - Your output must be a valid JSON object — nothing else. No markdown. No preamble.
 - Every string value in your JSON must be a single line with no literal newlines.
@@ -89,35 +86,12 @@ Similar conditions have occurred before on the PJME grid:
 
 ─────────────────────────────────────────────────────
 
-Now issue your operational mandate as a JSON object with EXACTLY these keys:
+Now issue your operational mandate as a JSON object with EXACTLY these keys (no extra keys):
 
 {{
-  "reasoning_trace": [
-    "Paragraph 1: your internal thinking about what the numbers actually reveal.",
-    "Paragraph 2: stress-test — what could go wrong with this interpretation?",
-    "Paragraph 3: how the historical precedents inform your decision.",
-    "Paragraph 4: your final analytical conclusion before writing the mandate."
-  ],
-
   "recommendation": "INCREASE GENERATION" | "DEPLOY RESERVES" | "MAINTAIN OPS",
 
-  "contract_type": "DAY_AHEAD" | "REAL_TIME" | "CAPACITY_MARKET",
-
   "confidence_score": integer 0-100,
-
-  "position_size": "FULL" | "HALF" | "QUARTER",
-
-  "risk_factors": [
-    "Risk 1: a specific physical threat to grid stability right now.",
-    "Risk 2: a second distinct physical risk.",
-    "Risk 3: a third distinct physical risk."
-  ],
-
-  "key_signals": [
-    "Signal 1: the single most important number and what it physically means.",
-    "Signal 2: the second most important signal.",
-    "Signal 3: the third most important signal."
-  ],
 
   "historical_analysis": [
     "Event 1: what physically happened in this past event and why it matters for today's forecast.",
@@ -127,14 +101,12 @@ Now issue your operational mandate as a JSON object with EXACTLY these keys:
 
   "rationale": [
     "Opening: describe the physical state of the grid right now in 1-2 sentences. What is the load doing? What is the weather doing?",
-    "Math: explain Model Divergence (computed as mean absolute percentage difference between Chronos MW predictions and SARIMA MW predictions). Explain the Anomaly Severity Score and its components. Use the actual numbers.",
-    "Risk: what are the physical consequences if we are wrong? Reference the p10/p90 MW scenarios.",
+    "Math: explain how the Model Divergence of {variance_magnitude_pct:.1f}% was computed (mean absolute percentage difference between Chronos MW and SARIMA MW forecasts across the horizon). Explain the Anomaly Severity Score of {anomaly_severity_score:.2f} and its weighted components (40% divergence, 35% WAPE delta, 25% sharpness). Use the actual numbers from above.",
+    "Risk: what are the physical consequences if we are wrong? Reference the p10 ({downside_var_mw:,.0f} MW) and p90 ({upside_var_mw:,.0f} MW) scenarios.",
     "Mandate: state your final operational decision in one crisp sentence. Do not restate anything from above."
   ],
 
-  "stop_loss_trigger": "One specific, observable physical event that would immediately invalidate this mandate.",
-
-  "time_horizon": "When and why to re-evaluate — be specific about the physical triggers."
+  "re_evaluation_trigger": "One specific observable physical condition that would trigger re-evaluation."
 }}
 """
 
@@ -187,29 +159,12 @@ Your job: explain to the control room why we are NOT taking aggressive action
 today, what the models are actually seeing, and what specific signal would 
 change your recommendation.
 
-Issue your advisory as a JSON object with EXACTLY these keys:
+Issue your advisory as a JSON object with EXACTLY these keys (no extra keys):
 
 {{
-  "reasoning_trace": [
-    "Paragraph 1: interrogate the divergence and severity numbers — are they noise or signal?",
-    "Paragraph 2: what does the WAPE comparison tell us about model reliability?",
-    "Paragraph 3: why does the severity score fall short of the action threshold?",
-    "Paragraph 4: your final risk assessment."
-  ],
-
   "recommendation": "MAINTAIN OPS",
 
-  "contract_type": "REAL_TIME",
-
   "confidence_score": integer 0-40,
-
-  "position_size": "NONE",
-
-  "risk_factors": [
-    "Risk 1: a specific reason why confidence is low right now.",
-    "Risk 2: a second distinct factor contributing to uncertainty.",
-    "Risk 3: a third distinct factor."
-  ],
 
   "historical_analysis": [
     "Event 1: what physically happened in this past event and why it matters for today's forecast.",
@@ -219,13 +174,11 @@ Issue your advisory as a JSON object with EXACTLY these keys:
 
   "advisory_note": [
     "Opening: describe what is physically happening on the grid right now. What does the load look like? Do NOT state your conclusion yet.",
-    "Math: the Model Divergence of X% was computed as the mean absolute percentage difference between Chronos and SARIMA MW forecasts. The Anomaly Severity Score of Y was computed as a weighted combination of divergence (40%), WAPE delta (35%), and interval sharpness (25%). Explain what these numbers mean for grid operations.",
-    "Confidence: explain what low confidence physically means — the models disagree on load direction, which makes any operational change risky. Explain why the score of Z is below the 0.40 threshold.",
+    "Math: the Model Divergence of {variance_magnitude_pct:.1f}% was computed as the mean absolute percentage difference between Chronos and SARIMA MW forecasts across the horizon. The Anomaly Severity Score of {anomaly_severity_score:.2f} was computed as 0.4×divergence + 0.35×WAPE_delta + 0.25×sharpness. Explain what these numbers mean for grid operations.",
+    "Confidence: explain what low confidence physically means — the models disagree on load direction, which makes any operational change risky. Explain why the score of {anomaly_severity_score:.2f} is below the 0.40 threshold.",
     "Decision: state that we are holding current operations in one sentence. Do not repeat anything from above."
   ],
 
-  "re_evaluation_trigger": "One specific observable condition that would trigger re-evaluation.",
-
-  "time_horizon": "Re-evaluate in 7 days, or immediately if re_evaluation_trigger occurs."
+  "re_evaluation_trigger": "One specific observable condition that would trigger re-evaluation."
 }}
 """

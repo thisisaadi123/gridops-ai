@@ -360,13 +360,11 @@ def strategy_formulator_node(state: GridOpsState) -> dict:
 
     mandate_narrative = (
         f"{rationale}\n\n"
-        f"**Contract Phase**: {mandate.get('contract_type', 'N/A')}\n"
-        f"**Stop Loss Trigger**: {mandate.get('stop_loss_trigger', 'N/A')}\n"
-        f"**Risk Factors**: {', '.join(mandate.get('risk_factors', []))}"
+        f"Re-evaluation trigger: {mandate.get('re_evaluation_trigger', 'N/A')}"
     )
 
     logger.info(
-        f"NODE 5A | Mandate: {mandate['recommendation']} {mandate['contract_type']} "
+        f"NODE 5A | Mandate: {mandate['recommendation']} "
         f"| Confidence: {mandate['confidence_score']}%"
     )
     return {
