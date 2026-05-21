@@ -17,14 +17,14 @@ from api.config import get_settings
 
 
 def _get_llm() -> ChatOpenAI:
-    """Initialize Grok via OpenAI-compatible interface."""
+    """Initialize LLM via Groq's OpenAI-compatible interface."""
     settings = get_settings()
     return ChatOpenAI(
         model=settings.groq_model,
         base_url=settings.groq_base_url,
         api_key=settings.groq_api_key,
         openai_api_key=settings.groq_api_key,
-        temperature=0.4,
+        temperature=0.2,
         max_tokens=4096,
     )
 

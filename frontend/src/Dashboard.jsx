@@ -21,6 +21,7 @@ export function Dashboard({ result, elapsed, onNew, onExport, horizon }) {
         <div className="dash-header-right">
           <button className="btn-secondary compact" onClick={onExport} type="button">Export Forecast CSV</button>
           <button className="btn-primary compact" onClick={onNew} type="button">Run New Analysis</button>
+          <button className="btn-primary compact" onClick={() => window.print()} type="button">Download Report (PDF)</button>
         </div>
       </header>
 
@@ -34,6 +35,8 @@ export function Dashboard({ result, elapsed, onNew, onExport, horizon }) {
         <Metric label="AI Forecast Confidence" value={`${result.trading_mandate?.confidence_score || 0}%`}
           help="The AI's conviction level for active grid intervention. A low score means the grid is stable (maintain ops). A high score indicates severe instability." />
       </div>
+      {/* New Insight Panel for stakeholders */}
+      <InsightsPanel result={result} />
 
       {/* Top: Execution Panel (Horizontal) */}
       <div className="execution-panel top-horizontal-panel">
@@ -95,6 +98,7 @@ export function Dashboard({ result, elapsed, onNew, onExport, horizon }) {
         </div>
       </div>
 
+      <StakeholderSummary result={result} />
       <AnalysisTabs result={result} />
 
       {/* Historical Event Similarity Section */}
@@ -611,7 +615,7 @@ function HistoricalSimilarity({ result }) {
               <div className="similarity-basis" style={{ background: 'none', padding: 0, border: 'none', marginBottom: '16px' }}>
                 <span className="similarity-basis-label" style={{ fontSize: '14px', color: 'var(--text-primary)', marginBottom: '8px' }}>
                   <i className="dot" style={{ width: '8px', height: '8px', background: 'var(--accent-cyan)', display: 'inline-block', marginRight: '8px' }} />
-                  Historical Precedent
+                  {event.event_type || 'Unknown Event'}
                 </span>
                 <p className="similarity-basis-text" style={{ fontSize: '14px', lineHeight: '1.6', color: 'var(--text-secondary)' }}>{historicalAnalysis[i] || 'No specific reasoning provided by AI for this event.'}</p>
               </div>
@@ -648,6 +652,36 @@ function HistoricalSimilarity({ result }) {
           the current {regime.toLowerCase()}-period {direction.toLowerCase().replace('_', ' ')} divergence of {magnitude.toFixed(1)}%. 
           These events informed the final {(result.trading_mandate?.recommendation || 'MAINTAIN OPS').toUpperCase()} recommendation.
         </span>
+      </div>
+    </section>
+  );
+}
+
+function InsightsPanel({ result }) {
+  // Gauge based on anomaly severity score (0-1)
+  const score = Math.min(Math.max(num(result.anomaly_severity_score), 0), 1);
+  const radius = 50;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference * (1 - score);
+  const gaugeColor = score >= (result.severity_threshold || 0.4) ? 'var(--accent-rose)' : 'var(--accent-emerald)';
+
+  return (
+    <section className="insights-panel glass-card" style={{ padding: '24px', marginBottom: '24px' }}>
+      <div className="insight-gauge" style={{ textAlign: 'center' }}>
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r={radius} fill="none" stroke="var(--glass-border)" strokeWidth="8" />
+          <circle cx="60" cy="60" r={radius} fill="none" stroke={gaugeColor} strokeWidth="8"
+            strokeDasharray={circumference} strokeDashoffset={offset}
+            transform="rotate(-90 60 60)" style={{ transition: 'stroke-dashoffset 0.5s' }} />
+          <text x="60" y="68" textAnchor="middle" fill="var(--text-primary)" fontSize="20" fontFamily="Inter">{Math.round(score * 100)}%</text>
+        </svg>
+        <div style={{ marginTop: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Anomaly Severity</div>
+      </div>
+      <div className="insight-metrics" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', alignItems: 'center' }}>
+        <Metric label="Model Divergence" value={`${result.variance_magnitude_pct?.toFixed(2) || '0'}%`} help="Mean absolute % difference between Chronos and SARIMA forecasts." />
+        <Metric label="Risk/Reward Ratio" value={result.risk_reward_ratio?.toFixed(2) || 'N/A'} help="Higher >1 indicates upside risk dominates; informs reserve deployment." />
+        <Metric label="Downside (p10)" value={`${num(result.downside_var_mw).toLocaleString()} MW`} help="Potential low‑demand tail scenario." />
+        <Metric label="Upside (p90)" value={`${num(result.upside_var_mw).toLocaleString()} MW`} help="Potential high‑demand tail scenario." />
       </div>
     </section>
   );
@@ -717,7 +751,20 @@ function DivergenceTab({ result }) {
   );
 }
 
-function SeasonalityTab({ result }) {
+// SummaryTab removed – replaced by StakeholderSummary below
+function StakeholderSummary({ result }) {
+  const s = summarize(result, horizon);
+  return (
+    <section className="stakeholder-summary glass-card" style={{ padding: '24px', marginBottom: '24px' }}>
+      <h2 style={{ marginBottom: '12px', fontSize: '20px', color: 'var(--text-primary)' }}>Key Takeaways</h2>
+      <p style={{ marginBottom: '8px', color: 'var(--text-secondary)' }}>{s.headline}</p>
+      <p style={{ marginBottom: '8px', color: 'var(--text-secondary)' }}>{s.subtext}</p>
+      <p style={{ color: 'var(--text-tertiary)', fontStyle: 'italic' }}>{s.explainer}</p>
+    </section>
+  );
+}
+
+function SummaryTab({ result }) {
   return (
     <div>
       <div className="tab-context">

@@ -8,6 +8,9 @@ export const DEMO_RESULT = {
   severity_threshold: 0.40,
   divergence_direction: 'CHRONOS_LOWER',
   variance_magnitude_pct: 9.09,
+  risk_reward_ratio: 1.28,
+  downside_var_mw: -1500,
+  upside_var_mw: 2500,
   historical_data: [
     32100, 31800, 31500, 31200, 30500, 29800, 31000, 32500, 33500, 34500,
     35200, 35000, 34200, 33500, 33000, 32200, 31800, 32000, 33500, 34800,
@@ -57,20 +60,23 @@ export const DEMO_RESULT = {
   data_stats: { total_days: 6059, mean_load: 32094.1, std_load: 5130.3, min_load: 17461, max_load: 62009, missing_pct: 0 },
   trading_mandate: {
     recommendation: 'MAINTAIN OPS',
-    contract_type: 'REAL_TIME',
     confidence_score: 94,
-    risk_factors: [
-      'Significant model divergence detected at the tail end of the forecast window.',
-      'Classical SARIMA model is hallucinating a massive demand spike (up to 54,000 MW) due to localized variance.',
-      'Foundation model (Chronos) successfully filters the noise and predicts stable baseline demand.',
+    historical_analysis: [
+      'Summer load spike (PJM-East, +7.4% impact): A high-humidity event in July 2017 drove cooling load to 42,000 MW across PJM-East. SARIMA overshot by 11% because it extrapolated the ramp linearly, while a sequence model correctly predicted the plateau. Today\'s 9.09% divergence follows the same pattern — SARIMA is projecting a false ramp that Chronos has filtered out.',
+      'Forecast divergence (PJM-West, +3.1% impact): During a mild weekend in June 2019, the statistical baseline overestimated demand by 3,200 MW because it failed to account for reduced industrial load. The foundation model tracked the cooling-load drop accurately. This precedent supports our current MAINTAIN OPS stance — the divergence is model error, not a physical grid signal.',
+      'SARIMA overshoot correction (PJM-System, -2.8% impact): In July 2018, SARIMA projected a 48,000 MW spike that never materialized. The actual peak was 39,500 MW. Operators who trusted the classical model deployed unnecessary reserves at $4.2M cost. Today\'s pattern is nearly identical — Chronos is the more trustworthy signal.',
     ],
-    key_signals: [
-      'Chronos AI achieves a superior WAPE of 7.79% against SARIMA\'s escalating error rate.',
-      'The 80% confidence band remains tight around the true demand curve.',
+    rationale: [
+      'The PJM East grid is currently operating in a stable summer load pattern with demand oscillating between 31,200 and 39,500 MW over the forecast window. No extreme weather events are developing, and industrial base load is tracking seasonal norms.',
+      'The Model Divergence of 9.09% was computed as mean(|Chronos_MW − SARIMA_MW| / SARIMA_MW) × 100 across all 30 forecast hours. SARIMA averages 41,437 MW while Chronos averages 33,893 MW — the gap is driven by SARIMA hallucinating a ramp to 54,000 MW in the final 72 hours. The Anomaly Severity Score of 0.22 (computed as 0.4×0.23 + 0.35×0.04 + 0.25×0.40 = 0.22) is well below our 0.40 threshold, confirming this is model noise, not a grid emergency.',
+      'If we are wrong and demand actually spikes: the p90 scenario shows demand could exceed the Chronos median by 2,500 MW, requiring fast-start peaker activation. If demand falls further: the p10 scenario shows a 1,500 MW drop below median, which is manageable through standard curtailment. The risk/reward ratio of 1.28 slightly favors upside risk but not enough to justify preemptive action.',
+      'MAINTAIN OPS — do not deploy emergency reserves or activate peaker plants based on the SARIMA false signal.',
     ],
-    rationale: 'Why: The classical SARIMA baseline is projecting a false grid emergency (a 50,000+ MW load spike) in the final 72 hours of the forecast window. How: The Chronos foundation model correctly identified this as statistical noise rather than a structural demand shift, maintaining a stable prediction that closely matches the holdout ground truth. What: We recommend maintaining standard operating procedures (MAINTAIN OPS). Do not spin up costly emergency peaker plants or deploy reserve capacity, as the predicted demand spike is a mathematical artifact of the classical model, not a physical reality.',
+    re_evaluation_trigger: 'Re-evaluate immediately if actual demand exceeds 42,000 MW for two consecutive hours or if a heat advisory is issued for the PJM-East service territory.',
   },
-  mandate_narrative: 'Maintain standard grid operations. The AI has confidently rejected a false demand spike predicted by the classical baseline.',
+  mandate_narrative: 'The PJM East grid is currently operating in a stable summer load pattern with demand oscillating between 31,200 and 39,500 MW over the forecast window. No extreme weather events are developing, and industrial base load is tracking seasonal norms.\n\nThe Model Divergence of 9.09% was computed as mean(|Chronos_MW − SARIMA_MW| / SARIMA_MW) × 100 across all 30 forecast hours. SARIMA averages 41,437 MW while Chronos averages 33,893 MW — the gap is driven by SARIMA hallucinating a ramp to 54,000 MW in the final 72 hours. The Anomaly Severity Score of 0.22 is well below our 0.40 threshold, confirming this is model noise, not a grid emergency.\n\nIf we are wrong and demand actually spikes: the p90 scenario shows demand could exceed the Chronos median by 2,500 MW, requiring fast-start peaker activation. If demand falls further: the p10 scenario shows a 1,500 MW drop below median, which is manageable through standard curtailment.\n\nMAINTAIN OPS — do not deploy emergency reserves or activate peaker plants based on the SARIMA false signal.\n\nRe-evaluation trigger: Re-evaluate immediately if actual demand exceeds 42,000 MW for two consecutive hours or if a heat advisory is issued for the PJM-East service territory.',
+  sarima_mean_mw: 41437,
+  chronos_mean_mw: 33893,
   variance_report: 'DIVERGENCE ANALYSIS REPORT\n==========================\nDirection: CHRONOS_LOWER | Magnitude: 9.09%\nSARIMA WAPE: 0.0811 | Chronos WAPE: 0.0779 | Delta: 0.0032 (Chronos wins)\nSARIMA Rolling Backtest WAPE: 0.1365\nInterval Sharpness Score: 0.000100\nAnomaly Severity Score: 0.2180 / 1.0\n\nInterpretation: Models are in reasonable agreement. Standard forecast uncertainty applies.',
   rag_query_used: 'energy demand chronos lower magnitude 9 percent summer season grid load anomaly PJM',
   retrieved_events: [
