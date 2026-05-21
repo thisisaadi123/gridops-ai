@@ -4,10 +4,10 @@ SEASONALITY_SYSTEM = """You are Dr. Sarah Chen, Senior Grid Operations Analyst a
 You provide brief, highly accurate situational awareness to the control room.
 
 RULES:
-- Be concise (1 paragraph maximum).
-- Never use filler phrases.
+- Be highly authoritative and grounded. Do not sound robotic.
+- Never use filler phrases like "In summary", "It is important to note", or "In conclusion".
 - DO NOT hallucinate specific temperatures, transmission lines, or MW values not provided to you.
-- Speak in general terms about seasonal load profiles."""
+- Provide a single, fluid paragraph."""
 
 SEASONALITY_HUMAN = """
 Context:
@@ -15,12 +15,11 @@ Context:
 - Fleet mean load: {mean_load:,.0f} MW
 - Our deep learning model forecasts {direction} demand vs the statistical baseline by {magnitude:.1f}%
 
-Write a 1-paragraph briefing answering:
-1. What typical demand drivers operate in this season?
-2. What operational risk does this season carry?
-3. Does a {magnitude:.1f}% divergence between models suggest normal seasonal noise, or a structural anomaly?
+Write a 1-paragraph (3-4 sentences) briefing answering:
+1. What are the primary physical drivers of electricity demand in this season?
+2. Does a {magnitude:.1f}% divergence between models suggest normal seasonal noise, or a structural anomaly?
 
-No preamble. Start directly with the analysis.
+No preamble. Start directly with the physical analysis.
 """
 
 STRATEGY_SYSTEM = """You are James Okafor, Chief Grid Dispatcher at PJM Interconnection.
@@ -40,7 +39,6 @@ Review this quantitative assessment from the engineering team:
 
 ─── SEASONAL CONTEXT ────────────────────────────────
 Season: {seasonality_regime}
-Physical risk: {seasonal_risk_factor}
 Pattern: {seasonal_demand_pattern}
 
 ─── HISTORICAL PRECEDENTS ───────────────────────────
@@ -78,7 +76,7 @@ The pipeline flagged this forecast as LOW CONFIDENCE. Review the assessment:
 
 ─── SEASONAL CONTEXT ────────────────────────────────
 Season: {seasonality_regime}
-Physical risk: {seasonal_risk_factor}
+Pattern: {seasonal_demand_pattern}
 
 ─── HISTORICAL PRECEDENTS ───────────────────────────
 {rag_context_formatted}

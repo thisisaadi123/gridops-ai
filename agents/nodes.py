@@ -193,19 +193,11 @@ def seasonality_detector_node(state: GridOpsState) -> dict:
     else:
         seasonal_analysis = content.strip()
 
-    # The prompt requests exactly 2 paragraphs. Split them.
-    paragraphs = [p.strip() for p in seasonal_analysis.split("\n\n") if p.strip()]
-    if len(paragraphs) >= 2:
-        seasonal_demand_pattern = paragraphs[0]
-        seasonal_risk = "\n\n".join(paragraphs[1:])
-    else:
-        seasonal_demand_pattern = seasonal_analysis
-        seasonal_risk = "See Regime Pattern Analysis for risk factors."
-
-    logger.info(f"NODE 2B | Regime: {regime} | Risk: {seasonal_risk[:60]}...")
+    seasonal_demand_pattern = seasonal_analysis
+    logger.info(f"NODE 2B | Regime: {regime} | Risk: {seasonal_demand_pattern[:60]}...")
     return {
         "seasonal_demand_pattern": seasonal_demand_pattern,
-        "seasonal_risk_factor": seasonal_risk,
+        "seasonal_risk_factor": "N/A",
         "analysis_findings": [f"Seasonal context: {regime} regime | {seasonal_risk[:80]}..."],
         "graph_execution_trace": ["seasonality_detector_node"],
     }
@@ -347,7 +339,7 @@ def strategy_formulator_node(state: GridOpsState) -> dict:
     p_sharpness = f"Forecast Sharpness measures the tightness of the model's confidence intervals. A lower score indicates higher precision. The current sharpness score is {sharpness:.6f}, which translates to a normalized sharpness signal of {sharp_signal:.2f}."
     
     rr = state.get("risk_reward_ratio", 0)
-    p4 = f"The p10 and p90 scenarios represent tail-risk bounds for potential demand outcomes. They help operators understand the worst-case physical scenarios. The p10 downside risk is {state.get('downside_var_mw', 0):,.0f} MW, while the p90 upside risk is {state.get('upside_var_mw', 0):,.0f} MW. The Risk/Reward ratio of {rr:.2f} indicates {'upside risk exceeds downside' if rr > 1.0 else 'downside risk exceeds upside'}."
+    p4 = f"The p10 and p90 scenarios represent tail-risk bounds for potential demand outcomes. They help operators understand the worst-case physical scenarios. The p10 downside risk (an unexpected drop in demand) is {state.get('downside_var_mw', 0):,.0f} MW, while the p90 upside risk (an unexpected spike in demand) is {state.get('upside_var_mw', 0):,.0f} MW. The Risk/Reward ratio of {rr:.2f} compares the magnitude of upside risk against downside risk, indicating that {'the threat of a demand spike outweighs a drop' if rr > 1.0 else 'the threat of a demand drop outweighs a spike'}."
     
     quantitative_rationale = "\n\n".join([p1, p3, p_sharpness, p4, p2])
 
@@ -450,7 +442,7 @@ def conservative_advisory_node(state: GridOpsState) -> dict:
     p_sharpness = f"Forecast Sharpness measures the tightness of the model's confidence intervals. A lower score indicates higher precision. The current sharpness score is {sharpness:.6f}, which translates to a normalized sharpness signal of {sharp_signal:.2f}."
     
     rr = state.get("risk_reward_ratio", 0)
-    p4 = f"The p10 and p90 scenarios represent tail-risk bounds for potential demand outcomes. They help operators understand the worst-case physical scenarios. The p10 downside risk is {state.get('downside_var_mw', 0):,.0f} MW, while the p90 upside risk is {state.get('upside_var_mw', 0):,.0f} MW. The Risk/Reward ratio of {rr:.2f} indicates {'upside risk exceeds downside' if rr > 1.0 else 'downside risk exceeds upside'}."
+    p4 = f"The p10 and p90 scenarios represent tail-risk bounds for potential demand outcomes. They help operators understand the worst-case physical scenarios. The p10 downside risk (an unexpected drop in demand) is {state.get('downside_var_mw', 0):,.0f} MW, while the p90 upside risk (an unexpected spike in demand) is {state.get('upside_var_mw', 0):,.0f} MW. The Risk/Reward ratio of {rr:.2f} compares the magnitude of upside risk against downside risk, indicating that {'the threat of a demand spike outweighs a drop' if rr > 1.0 else 'the threat of a demand drop outweighs a spike'}."
     
     quantitative_rationale = "\n\n".join([p1, p3, p_sharpness, p4, p2])
 
@@ -459,7 +451,7 @@ def conservative_advisory_node(state: GridOpsState) -> dict:
         HumanMessage(content=CONSERVATIVE_ADVISORY_HUMAN.format(
             quantitative_rationale=quantitative_rationale,
             seasonality_regime=state.get("seasonality_regime", "SHOULDER"),
-            seasonal_risk_factor=state.get("seasonal_risk_factor", ""),
+            seasonal_demand_pattern=state.get("seasonal_demand_pattern", ""),
             rag_context_formatted=rag_context_formatted,
         )),
     ]
