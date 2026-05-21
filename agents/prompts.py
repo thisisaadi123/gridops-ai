@@ -59,7 +59,7 @@ Produce a JSON object with EXACTLY these keys:
   "confidence_score": integer 0-100,
   "risk_factors": [list of 3-5 specific physical grid risk factors as strings],
   "key_signals": [list of 3 most important quantitative signals driving the decision],
-  "rationale": "A highly detailed, professional 2-3 paragraph explanation detailing EXACTLY the 'Why' (technical reasoning and physical grid implications), the 'How' (how operators should execute this mandate), and the 'What' (what operators should expect to see). You MUST explain the meaning behind your chosen 'contract_type' in professional terms.",
+  "rationale": "Write a 2-3 paragraph briefing as if you are a Chief Dispatcher briefing the control room. Speak in plain, professional English. Focus on physical grid reality (e.g. 'we are seeing higher than expected thermal load so we need to spool up peaker plants'). DO NOT robotically list numbers or say 'The Why is...'. Explain what the data means in the real world, what actions operators must take, and why you selected the specific contract_type.",
   "stop_loss_trigger": "string describing what event would invalidate this mandate",
   "time_horizon": "string describing when to re-evaluate"
 }}
@@ -82,7 +82,7 @@ Issue a conservative advisory JSON with EXACTLY these keys:
   "contract_type": "REAL_TIME",
   "confidence_score": integer 0-40,
   "risk_factors": [list of 3 factors causing low confidence],
-  "advisory_note": "A highly detailed, professional 2-3 paragraph explanation of EXACTLY why active grid adjustments are inadvisable right now. Detail the 'Why' (model divergence or uncertainty), the 'How' (how operators should maintain ops safely), and the 'What' (what risks are being avoided).",
+  "advisory_note": "Write a 2-3 paragraph briefing as if you are a senior grid dispatcher speaking to the control room in plain, professional English. Explain that the AI models are showing minor noise but no actionable anomalies. DO NOT just spit numbers or say 'The Why is...'. Translate the metrics into physical reality (e.g. 'The models are disagreeing slightly, likely due to normal weather variance, so committing to expensive market actions now is too risky. Hold current positions.').",
   "re_evaluation_trigger": "string describing what data/signal would increase confidence",
   "time_horizon": "Re-evaluate in 7 days"
 }}
