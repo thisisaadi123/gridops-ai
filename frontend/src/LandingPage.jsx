@@ -108,7 +108,7 @@ function Step1Config({ threshold, setThreshold, horizon, setHorizon, targetDate,
 
         <div className="field-group" style={{ marginTop: '24px' }}>
           <label className="field-label">Target Backtest Date: <span className="highlight-text">{targetDate || 'Latest'}</span></label>
-          <p className="field-help">Simulate a historical run. The AI will completely ignore any data after this date, allowing you to test how it would have reacted to past grid events.</p>
+          <p className="field-help">Simulate a historical run. The AI will completely ignore any data after this date, allowing you to test how it would have reacted to past grid events. <br/><span style={{ color: 'var(--text-secondary)' }}>Available PJM Dataset: 2001-01-01 to 2018-08-03</span></p>
           <input 
             type="date" 
             min="1998-04-01"
