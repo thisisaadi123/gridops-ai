@@ -355,7 +355,7 @@ def get_chronos_client() -> BaseChronosClient:
     logger.info("Chronos mode active: {}", mode)
 
     if mode == "local":
-        model_name = "amazon/chronos-t5-base" # Hardcoded to bypass the bad fine-tuned weights
+        model_name = "amazon/chronos-2" # Hardcoded base v2 model
         logger.info("Chronos model name explicitly set to base model: {}", model_name)
         return LocalChronosClient(model_name=model_name)
 
