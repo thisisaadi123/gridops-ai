@@ -47,20 +47,19 @@ def run_gridops_pipeline(self, dataset_path: str, severity_threshold: float = 0.
         logger.info('CHRONOS_INFERENCE | Starting')
         client = get_chronos_client()
 
-        logger.info(f"Routing to pure Hourly Inference Pipeline (horizon = {forecast_horizon})")
-        import numpy as np
+        logger.info(f"Routing to pure Daily Inference Pipeline (horizon = {forecast_horizon})")
         
-        # The model was fine-tuned on hourly data. We must feed it hourly data.
-        hourly_chronos_result = client.forecast(
-            pipeline.train_hourly.values,  # pyrefly: ignore[bad-argument-type]
-            prediction_length=forecast_horizon * 24,
+        # We use daily data because it allows the 512-context window to look back 1.4 years.
+        # This completely eliminates hallucination and drift.
+        daily_chronos_result = client.forecast(
+            pipeline.train.values,  # pyrefly: ignore[bad-argument-type]
+            prediction_length=forecast_horizon,
             num_samples=20,
         )
         
-        # Aggregate the hourly predictions (horizon * 24) down to daily percentiles (horizon, 24) -> (horizon)
-        chronos_p10 = np.median(np.asarray(hourly_chronos_result['p10']).reshape(forecast_horizon, 24), axis=1)
-        chronos_p50 = np.median(np.asarray(hourly_chronos_result['p50']).reshape(forecast_horizon, 24), axis=1)
-        chronos_p90 = np.median(np.asarray(hourly_chronos_result['p90']).reshape(forecast_horizon, 24), axis=1)
+        chronos_p10 = daily_chronos_result['p10']
+        chronos_p50 = daily_chronos_result['p50']
+        chronos_p90 = daily_chronos_result['p90']
 
         assert not isinstance(chronos_p10, list)
         assert not isinstance(chronos_p50, list)
