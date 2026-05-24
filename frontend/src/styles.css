@@ -1005,7 +1005,7 @@ a { color: var(--accent-cyan); text-decoration: none; }
     display: block !important; 
   }
   
-  .tab-buttons, .tab-bar, .top-horizontal-panel button, .action-buttons { 
+  .tab-buttons, .tab-bar, .top-horizontal-panel, .action-buttons { 
     display: none !important; 
   }
 
@@ -1050,8 +1050,15 @@ a { color: var(--accent-cyan); text-decoration: none; }
   /* Charts and Heatmaps */
   svg {
     max-width: 100% !important;
-    height: auto !important;
     page-break-inside: avoid !important;
+  }
+  
+  svg text {
+    fill: #0f172a !important;
+  }
+  
+  .chart-bg {
+    fill: #f8fafc !important;
   }
   
   /* Chart Tooltips or interactive elements shouldn't print */
