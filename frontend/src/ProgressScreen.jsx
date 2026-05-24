@@ -11,8 +11,8 @@ const STAGE_INFO = {
   CHRONOS_INFERENCE: {
     label: 'Chronos Inference',
     description:
-      'Running the finetuned Amazon Chronos-T5-Base model (200M parameters) via PyTorch ' +
-      'to generate probabilistic forecasts with p10 / p50 / p90 confidence intervals.',
+      'Running the Amazon Chronos-2 Multivariate model via PyTorch ' +
+      'and performing multi-step inferencing to generate probabilistic forecasts with p10 / p50 / p90 confidence intervals.',
     estimatedSeconds: '10 – 20s',
   },
   AGENT_REASONING: {
