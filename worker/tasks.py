@@ -47,47 +47,20 @@ def run_gridops_pipeline(self, dataset_path: str, severity_threshold: float = 0.
         logger.info('CHRONOS_INFERENCE | Starting')
         client = get_chronos_client()
 
-        if forecast_horizon <= 14:
-            logger.info("Routing to Multi-Resolution Chronos Ensemble (horizon <= 14)")
-            import numpy as np
-
-            # 1. Fetch Daily Baseline (Low drift, high structural accuracy)
-            daily_chronos_result = client.forecast(
-                pipeline.train.values,  # pyrefly: ignore[bad-argument-type]
-                prediction_length=forecast_horizon,
-                num_samples=20,
-            )
-            daily_chronos_mean = np.mean(daily_chronos_result['p50'])
-
-            # 2. Fetch Hourly Shape (High-fidelity zig-zags, high drift)
-            hourly_chronos_result = client.forecast(
-                pipeline.train_hourly.values,  # pyrefly: ignore[bad-argument-type]
-                prediction_length=forecast_horizon * 24,
-                num_samples=20,
-            )
-            
-            # Bridge: reshape (horizon*24) -> (horizon, 24) and apply daily median
-            hourly_p10 = np.median(np.asarray(hourly_chronos_result['p10']).reshape(forecast_horizon, 24), axis=1)
-            hourly_p50 = np.median(np.asarray(hourly_chronos_result['p50']).reshape(forecast_horizon, 24), axis=1)
-            hourly_p90 = np.median(np.asarray(hourly_chronos_result['p90']).reshape(forecast_horizon, 24), axis=1)
-
-            # 3. Ensemble Calibration
-            hourly_chronos_mean = np.mean(hourly_p50)
-            bias_shift = daily_chronos_mean - hourly_chronos_mean
-
-            chronos_p10 = np.maximum(hourly_p10 + bias_shift, 0.0)
-            chronos_p50 = np.maximum(hourly_p50 + bias_shift, 0.0)
-            chronos_p90 = np.maximum(hourly_p90 + bias_shift, 0.0)
-        else:
-            logger.info("Routing to Structural Daily Inference Pipeline (horizon > 14)")
-            chronos_result = client.forecast(
-                pipeline.train.values,  # pyrefly: ignore[bad-argument-type]
-                prediction_length=forecast_horizon,
-                num_samples=20,
-            )
-            chronos_p10 = chronos_result['p10']
-            chronos_p50 = chronos_result['p50']
-            chronos_p90 = chronos_result['p90']
+        logger.info(f"Routing to pure Hourly Inference Pipeline (horizon = {forecast_horizon})")
+        import numpy as np
+        
+        # The model was fine-tuned on hourly data. We must feed it hourly data.
+        hourly_chronos_result = client.forecast(
+            pipeline.train_hourly.values,  # pyrefly: ignore[bad-argument-type]
+            prediction_length=forecast_horizon * 24,
+            num_samples=20,
+        )
+        
+        # Aggregate the hourly predictions (horizon * 24) down to daily percentiles (horizon, 24) -> (horizon)
+        chronos_p10 = np.median(np.asarray(hourly_chronos_result['p10']).reshape(forecast_horizon, 24), axis=1)
+        chronos_p50 = np.median(np.asarray(hourly_chronos_result['p50']).reshape(forecast_horizon, 24), axis=1)
+        chronos_p90 = np.median(np.asarray(hourly_chronos_result['p90']).reshape(forecast_horizon, 24), axis=1)
 
         assert not isinstance(chronos_p10, list)
         assert not isinstance(chronos_p50, list)
