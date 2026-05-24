@@ -187,27 +187,27 @@ The pipeline hands all data to an autonomous AI agent workflow that mimics human
 ## Key Concepts and Formulas
 
 ### WAPE (Weighted Absolute Percentage Error)
-**What it is in plain English:** A metric used to grade the model's accuracy. It represents how far off the forecast was, on average, as a percentage. Lower is better (e.g., a 4% WAPE means the model is 96% accurate).
+A metric used to grade the model's accuracy. It represents how far off the forecast was, on average, as a percentage. Lower is better (e.g., a 4% WAPE means the model is 96% accurate).
 **Formula:** `WAPE = Sum(|Actual - Forecast|) / Sum(|Actual|)`
 
 ### Confidence Intervals (p10, p50, p90)
-**What it is in plain English:** Instead of predicting exactly one number, the AI predicts a range to account for uncertainty.
+Instead of predicting exactly one number, the AI predicts a range to account for uncertainty.
 - **p50 (Median):** The most likely outcome. Half the time demand will be higher, half the time lower.
 - **p10 (Optimistic Bound):** There is only a 10% chance demand will drop this low.
 - **p90 (Pessimistic Bound):** There is only a 10% chance demand will spike this high. Grid operators plan for the p90 to prevent blackouts.
 
 ### Interval Sharpness
-**What it is in plain English:** Measures how "tight" or "narrow" the confidence intervals are. A high sharpness score means the AI is very confident and giving a narrow range. A low score means the AI is uncertain and giving a very wide range.
+Measures how "tight" or "narrow" the confidence intervals are. A high sharpness score means the AI is very confident and giving a narrow range. A low score means the AI is uncertain and giving a very wide range.
 **Formula:** `Sharpness = 1 / average(p90 - p10)`
 
 ### Value-at-Risk (VaR)
-**What it is in plain English:** A financial metric used to quantify risk in Megawatts (MW).
+A financial metric used to quantify risk in Megawatts (MW).
 - **Downside VaR:** How much lower the demand could go compared to the median forecast.
 - **Upside VaR:** How much higher the demand could spike compared to the median forecast.
 - **Risk/Reward Ratio:** Compares the upside risk to the downside risk. A ratio > 1.0 means sudden spikes (upside risk) are more likely than sudden drops.
 
 ### Anomaly Severity Score
-**What it is in plain English:** A custom score from 0.0 to 1.0. It increases when the traditional model and the AI model strongly disagree. A high score flags a highly unusual situation (an anomaly) that requires immediate human attention.
+A custom score from 0.0 to 1.0. It increases when the traditional model and the AI model strongly disagree. A high score flags a highly unusual situation (an anomaly) that requires immediate human attention.
 
 ---
 
