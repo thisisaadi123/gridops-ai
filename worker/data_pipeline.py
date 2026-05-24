@@ -131,6 +131,8 @@ class EnergyDataPipeline:
         self.hourly_series = self.hourly_series[self.hourly_series.index <= end_of_target_day]
         
         # Recompute stats
+        if self.data_stats is None:
+            self.data_stats = {}
         self.data_stats["total_days"] = len(self.daily_series)
         self.data_stats["mean_load"] = round(float(self.daily_series.mean()), 4)
         self.data_stats["std_load"] = round(float(self.daily_series.std()), 4)
