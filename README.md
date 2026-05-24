@@ -43,7 +43,7 @@ short_description: Energy grid intelligence via Chronos & LangGraph
 
 **The Solution:** GridOps AI acts as an autonomous grid analyst. It predicts future electricity demand using modern AI and historical data, quantifies the financial risks of those predictions, and advises operators on how to manage the grid safely and profitably.
 
-GridOps AI ingests 6 years of historical hourly electricity demand data from the PJM East region (a major US power grid), processes it into daily averages, and runs a three-phase analytical pipeline:
+GridOps AI ingests 16 years of historical hourly electricity demand data from the PJM East region (a major US power grid), processes it into daily averages, and runs a three-phase analytical pipeline:
 
 1. **Statistical Baseline:** Fits a traditional statistical model (SARIMA) to establish a safe, conservative forecast based on historical weekly cycles.
 2. **Deep Learning Forecast:** Runs a finetuned Amazon Chronos-T5 AI model to generate highly accurate, probabilistic forecasts.

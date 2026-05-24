@@ -4,7 +4,7 @@ const STAGE_INFO = {
   DATA_PIPELINE: {
     label: 'Data Pipeline',
     description:
-      'Loading 6 years of PJM hourly energy readings, scanning for gaps and outliers, ' +
+      'Loading 16 years of PJM hourly energy readings, scanning for gaps and outliers, ' +
       'then fitting a SARIMA statistical model to establish a classical baseline forecast.',
     estimatedSeconds: '15 – 25s',
   },
