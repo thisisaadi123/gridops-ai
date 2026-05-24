@@ -447,8 +447,11 @@ def strategy_formulator_node(state: GridOpsState) -> dict:
 
     # Clean and parse JSON (Grok sometimes wraps in markdown)
     raw_json = raw_json.replace("```json", "").replace("```", "").strip()
+    import re
+    match = re.search(r'\{.*\}', raw_json, re.DOTALL)
+    if match:
+        raw_json = match.group(0)
     mandate = json.loads(raw_json, strict=False)
-
 
     
     # Get the LLM summary
@@ -549,6 +552,10 @@ def conservative_advisory_node(state: GridOpsState) -> dict:
         raw_json = content.strip()
         
     raw_json = raw_json.replace("```json", "").replace("```", "").strip()
+    import re
+    match = re.search(r'\{.*\}', raw_json, re.DOTALL)
+    if match:
+        raw_json = match.group(0)
     mandate = json.loads(raw_json, strict=False)
 
 
