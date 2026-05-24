@@ -809,16 +809,245 @@ function StakeholderSummary({ result, horizon }) {
 }
 
 function SeasonalityTab({ result }) {
+  const baseLoad = num(result.base_load_mw);
+  const peakLoad = num(result.peak_load_mw);
+  const weatherSensitive = num(result.weather_sensitive_mw);
+  const maxRampUp = num(result.max_ramp_up_mw);
+  const maxRampDown = num(result.max_ramp_down_mw);
+  const meanRamp = num(result.mean_ramp_mw);
+  const volatility = num(result.demand_volatility_pct);
+  const weekendEffect = num(result.weekend_effect_pct);
+  const heatmapData = result.forecast_heatmap || [];
+  const regime = result.seasonality_regime || 'Unknown';
+
+  // Heatmap calculations
+  const heatValues = heatmapData.map(d => d.value);
+  const heatMin = heatValues.length ? Math.min(...heatValues) : 0;
+  const heatMax = heatValues.length ? Math.max(...heatValues) : 1;
+  const heatRange = heatMax - heatMin || 1;
+
+  // Group by week for the grid
+  const weeks = {};
+  heatmapData.forEach(d => {
+    if (!weeks[d.week]) weeks[d.week] = [];
+    weeks[d.week].push(d);
+  });
+  const weekKeys = Object.keys(weeks).sort((a, b) => a - b);
+  const dowLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  // Color scale: dark blue (low) -> cyan (mid) -> rose (high)
+  const heatColor = (val) => {
+    const t = (val - heatMin) / heatRange;
+    if (t < 0.5) {
+      const r = Math.round(15 + t * 2 * (6 - 15));
+      const g = Math.round(23 + t * 2 * (182 - 23));
+      const b = Math.round(42 + t * 2 * (212 - 42));
+      return `rgb(${r}, ${g}, ${b})`;
+    } else {
+      const t2 = (t - 0.5) * 2;
+      const r = Math.round(6 + t2 * (244 - 6));
+      const g = Math.round(182 + t2 * (63 - 182));
+      const b = Math.round(212 + t2 * (94 - 212));
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+  };
+
+  const cellW = 56, cellH = 40, gap = 3;
+  const labelW = 36;
+  const headerH = 20;
+  const svgW = labelW + weekKeys.length * (cellW + gap);
+  const svgH = headerH + 7 * (cellH + gap);
+
+  // Load composition bar proportions
+  const totalRange = peakLoad || 1;
+  const basePct = (baseLoad / totalRange) * 100;
+  const weatherPct = (weatherSensitive / totalRange) * 100;
+
   return (
     <div>
-      <div className="tab-context">
-        <strong>Context:</strong> The Seasonality Detector utilizes a Large Language Model to evaluate the {result.seasonality_regime || 'Unknown'} physical demand regime against the numerical forecast, establishing baseline physical infrastructure risks.
-      </div>
-      <div className="summary-grid">
-        <div className="summary-item">
-          <strong>Regime Pattern Analysis</strong>
-          <p>{result.seasonal_demand_pattern || 'No physical regime analysis available.'}</p>
+      {/* Section Header */}
+      <div style={{ marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+          <span style={{
+            padding: '3px 10px', borderRadius: '4px', fontSize: '11px', fontWeight: 700,
+            letterSpacing: '0.08em', textTransform: 'uppercase',
+            background: regime === 'SUMMER' ? 'rgba(244, 63, 94, 0.15)' : regime === 'WINTER' ? 'rgba(56, 189, 248, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+            color: regime === 'SUMMER' ? '#f43f5e' : regime === 'WINTER' ? '#38bdf8' : '#f59e0b',
+          }}>{regime}</span>
+          <span style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>Seasonal Load Profile</span>
         </div>
+      </div>
+
+      {/* Load Composition */}
+      <div style={{ marginBottom: '28px' }}>
+        <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '12px', letterSpacing: '0.04em' }}>LOAD COMPOSITION</h4>
+        <div className="summary-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
+          <div className="summary-item">
+            <strong>Base Load</strong>
+            <div style={{ fontSize: '22px', color: 'var(--accent-cyan)', marginTop: '4px', fontWeight: 700 }}>
+              {baseLoad.toLocaleString()} MW
+            </div>
+            <small style={{ fontSize: '11px', color: 'var(--text-tertiary)', lineHeight: 1.4 }}>Minimum sustained demand floor across the forecast window.</small>
+          </div>
+          <div className="summary-item">
+            <strong>Weather-Sensitive</strong>
+            <div style={{ fontSize: '22px', color: '#f59e0b', marginTop: '4px', fontWeight: 700 }}>
+              {weatherSensitive.toLocaleString()} MW
+            </div>
+            <small style={{ fontSize: '11px', color: 'var(--text-tertiary)', lineHeight: 1.4 }}>Variable demand driven by heating/cooling above the base floor.</small>
+          </div>
+          <div className="summary-item">
+            <strong>Peak Load</strong>
+            <div style={{ fontSize: '22px', color: '#f43f5e', marginTop: '4px', fontWeight: 700 }}>
+              {peakLoad.toLocaleString()} MW
+            </div>
+            <small style={{ fontSize: '11px', color: 'var(--text-tertiary)', lineHeight: 1.4 }}>Maximum single-day demand in the forecast horizon.</small>
+          </div>
+        </div>
+
+        {/* Composition bar */}
+        <div style={{ display: 'flex', height: '10px', borderRadius: '5px', overflow: 'hidden', background: 'rgba(0,0,0,0.3)' }}>
+          <div style={{ width: `${basePct}%`, background: 'var(--accent-cyan)', transition: 'width 0.5s' }} />
+          <div style={{ width: `${weatherPct}%`, background: '#f59e0b', transition: 'width 0.5s' }} />
+          <div style={{ flex: 1, background: 'rgba(244, 63, 94, 0.5)' }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
+          <span>Base</span><span>Weather-Sensitive</span><span>Peak</span>
+        </div>
+      </div>
+
+      {/* Ramp Dynamics */}
+      <div style={{ marginBottom: '28px' }}>
+        <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '12px', letterSpacing: '0.04em' }}>RAMP DYNAMICS</h4>
+        <div className="summary-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+          <div className="summary-item">
+            <strong>Max Ramp Up</strong>
+            <div style={{ fontSize: '20px', color: '#10b981', marginTop: '4px', fontWeight: 700 }}>
+              +{Math.abs(maxRampUp).toLocaleString()} MW
+            </div>
+            <small style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Steepest single-day demand increase.</small>
+          </div>
+          <div className="summary-item">
+            <strong>Max Ramp Down</strong>
+            <div style={{ fontSize: '20px', color: '#f43f5e', marginTop: '4px', fontWeight: 700 }}>
+              {maxRampDown < 0 ? '' : '-'}{Math.abs(maxRampDown).toLocaleString()} MW
+            </div>
+            <small style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Steepest single-day demand drop.</small>
+          </div>
+          <div className="summary-item">
+            <strong>Avg Daily Change</strong>
+            <div style={{ fontSize: '20px', color: 'var(--text-primary)', marginTop: '4px', fontWeight: 700 }}>
+              {meanRamp.toLocaleString()} MW
+            </div>
+            <small style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Mean absolute day-over-day shift.</small>
+          </div>
+          <div className="summary-item">
+            <strong>Volatility Index</strong>
+            <div style={{ fontSize: '20px', color: volatility > 5 ? '#f59e0b' : 'var(--text-primary)', marginTop: '4px', fontWeight: 700 }}>
+              {volatility.toFixed(1)}%
+            </div>
+            <small style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Std of daily changes relative to mean load.</small>
+          </div>
+        </div>
+      </div>
+
+      {/* Weekend Effect */}
+      <div style={{ marginBottom: '28px', display: 'flex', gap: '12px' }}>
+        <div className="summary-item" style={{ flex: 1 }}>
+          <strong>Weekend Effect</strong>
+          <div style={{ fontSize: '20px', color: weekendEffect < 0 ? '#38bdf8' : '#f59e0b', marginTop: '4px', fontWeight: 700 }}>
+            {weekendEffect > 0 ? '+' : ''}{weekendEffect.toFixed(1)}%
+          </div>
+          <small style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>
+            Weekend demand averages {Math.abs(weekendEffect).toFixed(1)}% {weekendEffect < 0 ? 'lower' : 'higher'} than weekdays. {Math.abs(weekendEffect) > 8 ? 'This is an unusually large gap.' : 'This is within normal operating range.'}
+          </small>
+        </div>
+      </div>
+
+      {/* Forecast Demand Heatmap */}
+      {heatmapData.length > 0 && (
+        <div style={{ marginBottom: '28px' }}>
+          <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '12px', letterSpacing: '0.04em' }}>FORECAST DEMAND HEATMAP</h4>
+          <div style={{ overflowX: 'auto', paddingBottom: '8px' }}>
+            <svg width={svgW + 20} height={svgH + 40} style={{ display: 'block' }}>
+              {/* Week labels */}
+              {weekKeys.map((wk, wi) => (
+                <text key={`wk-${wk}`}
+                  x={labelW + wi * (cellW + gap) + cellW / 2}
+                  y={12}
+                  textAnchor="middle"
+                  fill="var(--text-tertiary)"
+                  style={{ fontSize: '10px', fontFamily: 'JetBrains Mono, monospace' }}
+                >Week {parseInt(wk) + 1}</text>
+              ))}
+              {/* Day-of-week labels */}
+              {dowLabels.map((d, di) => (
+                <text key={`dow-${d}`}
+                  x={labelW - 6}
+                  y={headerH + di * (cellH + gap) + cellH / 2 + 4}
+                  textAnchor="end"
+                  fill="var(--text-tertiary)"
+                  style={{ fontSize: '10px', fontFamily: 'JetBrains Mono, monospace' }}
+                >{d}</text>
+              ))}
+              {/* Heatmap cells */}
+              {heatmapData.map((cell, ci) => {
+                const cx = labelW + cell.week * (cellW + gap);
+                const cy = headerH + cell.dow_idx * (cellH + gap);
+                const t = (cell.value - heatMin) / heatRange;
+                return (
+                  <g key={ci}>
+                    <rect
+                      x={cx} y={cy} width={cellW} height={cellH}
+                      rx={4}
+                      fill={heatColor(cell.value)}
+                      opacity={0.85 + t * 0.15}
+                    >
+                      <title>{cell.date}: {Math.round(cell.value).toLocaleString()} MW</title>
+                    </rect>
+                    <text
+                      x={cx + cellW / 2}
+                      y={cy + cellH / 2 - 2}
+                      textAnchor="middle"
+                      fill={t > 0.5 ? '#fff' : 'rgba(255,255,255,0.9)'}
+                      style={{ fontSize: '11px', fontWeight: 600, fontFamily: 'JetBrains Mono, monospace' }}
+                    >{(cell.value / 1000).toFixed(1)}k</text>
+                    <text
+                      x={cx + cellW / 2}
+                      y={cy + cellH / 2 + 11}
+                      textAnchor="middle"
+                      fill={t > 0.5 ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.5)'}
+                      style={{ fontSize: '8px', fontFamily: 'JetBrains Mono, monospace' }}
+                    >{cell.date.substring(5)}</text>
+                  </g>
+                );
+              })}
+              {/* Color scale legend */}
+              <defs>
+                <linearGradient id="heatGrad" x1="0" x2="1" y1="0" y2="0">
+                  <stop offset="0%" stopColor="rgb(15, 23, 42)" />
+                  <stop offset="50%" stopColor="rgb(6, 182, 212)" />
+                  <stop offset="100%" stopColor="rgb(244, 63, 94)" />
+                </linearGradient>
+              </defs>
+              <rect x={labelW} y={svgH + 8} width={Math.min(200, svgW - labelW - 20)} height={8} rx={4} fill="url(#heatGrad)" />
+              <text x={labelW} y={svgH + 28} fill="var(--text-tertiary)" style={{ fontSize: '9px', fontFamily: 'JetBrains Mono, monospace' }}>
+                {(heatMin / 1000).toFixed(0)}k MW
+              </text>
+              <text x={labelW + Math.min(200, svgW - labelW - 20)} y={svgH + 28} textAnchor="end" fill="var(--text-tertiary)" style={{ fontSize: '9px', fontFamily: 'JetBrains Mono, monospace' }}>
+                {(heatMax / 1000).toFixed(0)}k MW
+              </text>
+            </svg>
+          </div>
+        </div>
+      )}
+
+      {/* LLM Regime Synthesis */}
+      <div style={{ marginTop: '8px' }}>
+        <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', letterSpacing: '0.04em' }}>REGIME SYNTHESIS</h4>
+        <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.7, margin: 0 }}>
+          {result.seasonal_demand_pattern || 'No regime analysis available.'}
+        </p>
       </div>
     </div>
   );

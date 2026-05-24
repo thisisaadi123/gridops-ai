@@ -148,30 +148,96 @@ def divergence_analyst_node(state: GridOpsState) -> dict:
 # ─────────────────────────────────────────────
 def seasonality_detector_node(state: GridOpsState) -> dict:
     """
-    Uses Grok to produce a qualitative seasonality risk assessment.
+    Computes quantitative seasonal metrics from forecast arrays, then
+    uses an LLM to synthesize a single professional paragraph.
     Runs in PARALLEL with divergence_analyst_node.
-    LLM call is lightweight — grok-beta handles this in ~1 second.
     """
     logger.info("NODE 2B | Seasonality Detector | Starting")
 
-    # Guard: skip LLM call if data quality failed (node still fires via
-    # unconditional edge, but we don't waste an API call on bad data)
+    # Guard: skip if data quality failed
     if not state.get("data_quality_valid", True):
         logger.warning("NODE 2B | Skipping — data quality validation failed")
         return {
             "seasonal_demand_pattern": "Skipped due to data quality failure.",
-            "seasonal_risk_factor": "N/A",
+            "max_ramp_up_mw": 0.0,
+            "max_ramp_down_mw": 0.0,
+            "mean_ramp_mw": 0.0,
+            "base_load_mw": 0.0,
+            "weather_sensitive_mw": 0.0,
+            "peak_load_mw": 0.0,
+            "demand_volatility_pct": 0.0,
+            "weekend_effect_pct": 0.0,
+            "forecast_heatmap": [],
             "analysis_findings": ["Seasonality analysis skipped — data quality invalid"],
             "graph_execution_trace": ["seasonality_detector_node (skipped)"],
         }
 
-    llm = _get_llm()
+    import numpy as np
+    from datetime import datetime as dt_cls
+
+    chronos_p50 = np.array(state.get("chronos_p50", []))
+    forecast_dates_raw = state.get("forecast_dates", [])
     regime = state.get("seasonality_regime", "SHOULDER")
     direction = state.get("divergence_direction") or "UNKNOWN"
     magnitude = state.get("variance_magnitude_pct") or 0.0
     mean_load = state.get("data_stats", {}).get("mean_load", 100000)
-    total_days = state.get("data_stats", {}).get("total_days", 1000)
 
+    # ── Ramp Dynamics ──
+    daily_diffs = np.diff(chronos_p50) if len(chronos_p50) > 1 else np.array([0.0])
+    max_ramp_up = float(np.max(daily_diffs)) if len(daily_diffs) > 0 else 0.0
+    max_ramp_down = float(np.min(daily_diffs)) if len(daily_diffs) > 0 else 0.0
+    mean_ramp = float(np.mean(np.abs(daily_diffs))) if len(daily_diffs) > 0 else 0.0
+
+    # ── Load Composition ──
+    base_load = float(np.min(chronos_p50)) if len(chronos_p50) > 0 else 0.0
+    peak_load = float(np.max(chronos_p50)) if len(chronos_p50) > 0 else 0.0
+    mean_forecast = float(np.mean(chronos_p50)) if len(chronos_p50) > 0 else 0.0
+    weather_sensitive = mean_forecast - base_load
+
+    # ── Demand Volatility ──
+    volatility_pct = float(np.std(daily_diffs) / mean_forecast * 100) if mean_forecast > 0 else 0.0
+
+    # ── Weekend Effect ──
+    parsed_dates = []
+    for d in forecast_dates_raw:
+        try:
+            parsed_dates.append(dt_cls.fromisoformat(str(d)))
+        except Exception:
+            parsed_dates.append(None)
+
+    weekday_vals, weekend_vals = [], []
+    for i, pdt in enumerate(parsed_dates):
+        if pdt is None or i >= len(chronos_p50):
+            continue
+        if pdt.weekday() >= 5:
+            weekend_vals.append(chronos_p50[i])
+        else:
+            weekday_vals.append(chronos_p50[i])
+
+    if weekday_vals and weekend_vals:
+        weekday_avg = float(np.mean(weekday_vals))
+        weekend_avg = float(np.mean(weekend_vals))
+        weekend_effect = ((weekend_avg - weekday_avg) / weekday_avg) * 100
+    else:
+        weekend_effect = 0.0
+
+    # ── Heatmap data ──
+    dow_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    heatmap_data = []
+    first_date = parsed_dates[0] if parsed_dates and parsed_dates[0] else None
+    for i, pdt in enumerate(parsed_dates):
+        if pdt is None or i >= len(chronos_p50):
+            continue
+        heatmap_data.append({
+            "date": forecast_dates_raw[i],
+            "dow": dow_names[pdt.weekday()],
+            "dow_idx": pdt.weekday(),
+            "week": (pdt - first_date).days // 7 if first_date else 0,
+            "value": float(chronos_p50[i]),
+        })
+
+    # ── LLM Synthesis ──
+    llm = _get_llm()
     messages = [
         SystemMessage(content=SEASONALITY_SYSTEM),
         HumanMessage(content=SEASONALITY_HUMAN.format(
@@ -179,7 +245,13 @@ def seasonality_detector_node(state: GridOpsState) -> dict:
             mean_load=float(mean_load),
             direction=direction,
             magnitude=magnitude,
-            total_days=int(total_days),
+            base_load=base_load,
+            peak_load=peak_load,
+            weather_sensitive=weather_sensitive,
+            max_ramp_up=max_ramp_up,
+            max_ramp_down=abs(max_ramp_down),
+            weekend_effect=abs(weekend_effect),
+            weekend_direction="lower" if weekend_effect < 0 else "higher",
         )),
     ]
 
@@ -193,12 +265,19 @@ def seasonality_detector_node(state: GridOpsState) -> dict:
     else:
         seasonal_analysis = content.strip()
 
-    seasonal_demand_pattern = seasonal_analysis
-    logger.info(f"NODE 2B | Regime: {regime} | Risk: {seasonal_demand_pattern[:60]}...")
+    logger.info(f"NODE 2B | Regime: {regime} | Base: {base_load:,.0f} | Peak: {peak_load:,.0f} | Ramp+: {max_ramp_up:,.0f} | Ramp-: {max_ramp_down:,.0f}")
     return {
-        "seasonal_demand_pattern": seasonal_demand_pattern,
-        "seasonal_risk_factor": "N/A",
-        "analysis_findings": [f"Seasonal context: {regime} regime | {seasonal_demand_pattern[:80]}..."],
+        "seasonal_demand_pattern": seasonal_analysis,
+        "max_ramp_up_mw": max_ramp_up,
+        "max_ramp_down_mw": max_ramp_down,
+        "mean_ramp_mw": mean_ramp,
+        "base_load_mw": base_load,
+        "weather_sensitive_mw": weather_sensitive,
+        "peak_load_mw": peak_load,
+        "demand_volatility_pct": round(volatility_pct, 2),
+        "weekend_effect_pct": round(weekend_effect, 2),
+        "forecast_heatmap": heatmap_data,
+        "analysis_findings": [f"Seasonal context: {regime} | Base: {base_load:,.0f} MW | Peak: {peak_load:,.0f} MW | Max Ramp: {max_ramp_up:,.0f} MW/day"],
         "graph_execution_trace": ["seasonality_detector_node"],
     }
 

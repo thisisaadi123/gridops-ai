@@ -46,8 +46,24 @@ class GridOpsState(TypedDict):
     anomaly_severity_score: float    # 0.0 – 1.0, drives the risk gate
 
     # === Seasonality Analysis ===
-    seasonal_demand_pattern: str     # descriptive summary
-    seasonal_risk_factor: str        # e.g. "Heat dome probability elevated"
+    seasonal_demand_pattern: str     # LLM synthesis paragraph
+
+    # Ramp Dynamics (day-over-day)
+    max_ramp_up_mw: float            # largest single-day MW increase
+    max_ramp_down_mw: float          # largest single-day MW decrease (negative)
+    mean_ramp_mw: float              # average absolute day-over-day change
+
+    # Load Composition
+    base_load_mw: float              # floor demand (min of forecast)
+    weather_sensitive_mw: float      # mean - base = weather-driven component
+    peak_load_mw: float              # ceiling demand (max of forecast)
+
+    # Demand Volatility
+    demand_volatility_pct: float     # std of daily changes / mean load × 100
+    weekend_effect_pct: float        # avg weekend vs weekday difference %
+
+    # Heatmap data (forecast values keyed by day-of-week)
+    forecast_heatmap: list           # [{date, dow, value}, ...]
 
     # === RAG Context ===
     retrieved_events: list[dict]
