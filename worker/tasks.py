@@ -53,7 +53,7 @@ def run_gridops_pipeline(self, dataset_path: str, severity_threshold: float = 0.
         # Extract temperature covariates for Chronos-2 multivariate support
         covariates_series = None
         future_covariates_series = None
-        if getattr(pipeline, 'train_covariates', None) is not None:
+        if pipeline.train_covariates is not None and pipeline.holdout_covariates is not None:
             covariates_series = pipeline.train_covariates.values
             future_covariates_series = pipeline.holdout_covariates.values
 
