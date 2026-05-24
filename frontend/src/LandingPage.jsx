@@ -111,6 +111,8 @@ function Step1Config({ threshold, setThreshold, horizon, setHorizon, targetDate,
           <p className="field-help">Simulate a historical run. The AI will completely ignore any data after this date, allowing you to test how it would have reacted to past grid events.</p>
           <input 
             type="date" 
+            min="1998-04-01"
+            max="2018-08-03"
             className="text-input" 
             style={{ width: '100%', marginTop: '8px', padding: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--glass-border)', color: 'var(--text-primary)', borderRadius: 'var(--radius-sm)' }}
             value={targetDate} 
