@@ -41,14 +41,14 @@ class EnergyDataPipeline:
 
         # Populated by load_and_preprocess()
         self.daily_series: Optional[pd.Series] = None
-        self.daily_covariates: Optional[pd.Series] = None
+        self.daily_covariates: Optional[pd.DataFrame] = None
         self.data_stats: Optional[dict] = None
 
         # Populated by split_holdout()
         self.train: Optional[pd.Series] = None
         self.holdout: Optional[pd.Series] = None
-        self.train_covariates: Optional[pd.Series] = None
-        self.holdout_covariates: Optional[pd.Series] = None
+        self.train_covariates: Optional[pd.DataFrame] = None
+        self.holdout_covariates: Optional[pd.DataFrame] = None
 
         # Populated by detect_seasonality_regime()
         self.seasonality_regime: Optional[str] = None
@@ -90,24 +90,9 @@ class EnergyDataPipeline:
         self.hourly_series = load_series.copy()
         self.hourly_series.name = "PJME_HOURLY"
 
-        # Load temperature data
-        import os
-        temp_path = os.path.join(os.path.dirname(self.csv_path), "pjm_temperature.csv")
-        temp_df = pd.read_csv(temp_path, parse_dates=["Datetime"])
-        temp_df = temp_df.set_index("Datetime").sort_index()
-        temp_series = temp_df["temperature_2m"]
-        temp_series = temp_series[~temp_series.index.duplicated(keep="first")]
-        temp_series = temp_series.resample("h").ffill()
-        
-        # Align indices
-        temp_series = temp_series.reindex(load_series.index).ffill().bfill()
-
         # Resample to daily frequency
         self.daily_series = load_series.resample("D").median()
         self.daily_series.name = "PJME"
-        
-        self.daily_covariates = temp_series.resample("D").mean()
-        self.daily_covariates.name = "temperature_2m"
 
         # Missing percentage at the daily level (what the model actually trains on)
         missing_pct = float(self.daily_series.isnull().mean() * 100)  # type: ignore
@@ -121,6 +106,22 @@ class EnergyDataPipeline:
             "max_load": round(self.daily_series.max(), 4),    # type: ignore
             "missing_pct": missing_pct,
         }
+
+        # --- Load Covariates (Temperature) ---
+        import os
+        temp_path = os.path.join(os.path.dirname(self.csv_path), "pjm_temperature.csv")
+        if os.path.exists(temp_path):
+            temp_df = pd.read_csv(temp_path, parse_dates=["Datetime"])
+            temp_df = temp_df.set_index("Datetime").sort_index()
+            temp_df = temp_df[~temp_df.index.duplicated(keep="first")]
+            temp_df = temp_df.resample("h").ffill()
+            daily_temp = temp_df.resample("D").mean()
+            # Align exactly with the daily_series index
+            self.daily_covariates = daily_temp.reindex(self.daily_series.index)
+            # Fill any gaps created by reindexing (e.g. if temperature is missing for some load dates)
+            self.daily_covariates = self.daily_covariates.ffill().bfill()
+        else:
+            self.daily_covariates = None
 
     # ------------------------------------------------------------------
     # Data filtering
@@ -143,12 +144,14 @@ class EnergyDataPipeline:
         
         # Filter daily
         self.daily_series = self.daily_series[self.daily_series.index <= target_ts]
-        if self.daily_covariates is not None:
-            self.daily_covariates = self.daily_covariates[self.daily_covariates.index <= target_ts]
         
         # Filter hourly (up to the very end of that day)
         end_of_target_day = target_ts + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
         self.hourly_series = self.hourly_series[self.hourly_series.index <= end_of_target_day]
+        
+        # Filter covariates
+        if self.daily_covariates is not None:
+            self.daily_covariates = self.daily_covariates[self.daily_covariates.index <= target_ts]
         
         # Recompute stats
         if self.data_stats is None:
@@ -217,15 +220,16 @@ class EnergyDataPipeline:
         days = holdout_days if holdout_days is not None else n_days
         self.train = self.daily_series.iloc[:-days]
         self.holdout = self.daily_series.iloc[-days:]
-        
-        if self.daily_covariates is not None:
-            self.train_covariates = self.daily_covariates.iloc[:-days]
-            self.holdout_covariates = self.daily_covariates.iloc[-days:]
 
         # Split hourly series at the exact same chronological boundary
         cutoff_date = self.holdout.index[0]
         self.train_hourly = self.hourly_series.loc[self.hourly_series.index < cutoff_date]
         self.holdout_hourly = self.hourly_series.loc[self.hourly_series.index >= cutoff_date]
+
+        # Split covariates
+        if self.daily_covariates is not None:
+            self.train_covariates = self.daily_covariates.iloc[:-days]
+            self.holdout_covariates = self.daily_covariates.iloc[-days:]
 
     # ------------------------------------------------------------------
     # Seasonality detection
@@ -268,9 +272,11 @@ class EnergyDataPipeline:
 
         warnings.filterwarnings("ignore")
 
+        exog = self.train_covariates[["temperature_2m"]] if self.train_covariates is not None else None
+
         model = SARIMAX(
             self.train,
-            exog=self.train_covariates,
+            exog=exog,
             order=(1, 1, 1),
             seasonal_order=(1, 1, 1, 7),
             enforce_stationarity=False,
@@ -292,11 +298,11 @@ class EnergyDataPipeline:
         if self.sarima_model is None:
             raise ValueError("SARIMA model not fitted – call fit_sarima() first.")
 
+        exog = None
         if self.holdout_covariates is not None:
-            exog_future = self.holdout_covariates.iloc[:steps]
-            forecast = self.sarima_model.forecast(steps=steps, exog=exog_future)
-        else:
-            forecast = self.sarima_model.forecast(steps=steps)
+            exog = self.holdout_covariates[["temperature_2m"]].iloc[:steps]
+
+        forecast = self.sarima_model.forecast(steps=steps, exog=exog)
             
         return np.array(forecast)
 
@@ -339,18 +345,25 @@ class EnergyDataPipeline:
 
             if len(bt_train) < window:
                 break
+                
+            bt_train_exog = None
+            bt_holdout_exog = None
+            if self.daily_covariates is not None:
+                bt_train_exog = self.daily_covariates.iloc[:holdout_start][["temperature_2m"]]
+                bt_holdout_exog = self.daily_covariates.iloc[holdout_start:holdout_end][["temperature_2m"]]
 
             warnings.filterwarnings("ignore")
             try:
                 model = SARIMAX(
                     bt_train,
+                    exog=bt_train_exog,
                     order=(1, 1, 1),
                     seasonal_order=(1, 1, 1, 7),
                     enforce_stationarity=False,
                     enforce_invertibility=False,
                 )
                 fitted = model.fit(disp=False)
-                fc = fitted.forecast(steps=window)
+                fc = fitted.forecast(steps=window, exog=bt_holdout_exog)
                 wape = self.calculate_wape(np.array(bt_holdout), np.array(fc))
                 window_wapes.append(wape)
             finally:

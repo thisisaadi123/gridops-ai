@@ -13,7 +13,7 @@ short_description: Energy grid intelligence via Chronos & LangGraph
 
 ### Autonomous Energy Grid Intelligence
 
-**A production-grade forecasting system that combines a finetuned deep learning model (Amazon Chronos-T5) with a 7-node LangGraph reasoning agent to analyse PJM electricity demand and generate grid operating mandates.**
+**A production-grade forecasting system that combines a zero-shot deep learning model (Amazon Chronos-2) with a 7-node LangGraph reasoning agent to analyse PJM electricity demand and generate grid operating mandates.**
 
 [Live Demo](https://gridopsai.vercel.app) | [Backend API](https://huggingface.co/spaces/thisisaadi123/gridops-ai) | [GitHub Source](https://github.com/thisisaadi123/gridops-ai)
 
@@ -46,7 +46,7 @@ short_description: Energy grid intelligence via Chronos & LangGraph
 GridOps AI ingests 16 years of historical hourly electricity demand data from the PJM East region (a major US power grid), processes it into daily averages, and runs a three-phase analytical pipeline:
 
 1. **Statistical Baseline:** Fits a traditional statistical model (SARIMA) to establish a safe, conservative forecast based on historical weekly cycles.
-2. **Deep Learning Forecast:** Runs a finetuned Amazon Chronos-T5 AI model to generate highly accurate, probabilistic forecasts.
+2. **Deep Learning Forecast:** Runs the latest Amazon Chronos-2 AI model (zero-shot, utilizing weather covariates) to generate highly accurate, probabilistic forecasts.
 3. **Agentic Reasoning:** An AI workflow (LangGraph) acts like a team of analysts. It compares the two models, searches a database of historical grid events for context, and generates a structured, plain-English grid operating mandate.
 
 All computations are executed asynchronously in the background, with real-time progress streamed to a React dashboard.
@@ -104,14 +104,14 @@ All computations are executed asynchronously in the background, with real-time p
 - **Data Ingestion:** Reads over 52,000 hours of historical electricity load data.
 - **Preprocessing:** Cleans the data, fills in missing gaps, and converts hourly data into a single daily average to reduce noise.
 - **Quality Validation:** Ensures the data is healthy (e.g., no negative electricity usage, enough historical data to make accurate predictions).
-- **SARIMA Fitting:** Fits a traditional statistical model called `SARIMAX(1,1,1)(1,1,1,7)`. The "7" means the model specifically looks for weekly patterns (like demand dropping on weekends).
+- **SARIMAX Fitting:** Fits a traditional statistical model called `SARIMAX(1,1,1)(1,1,1,7)`. The "7" means the model specifically looks for weekly patterns (like demand dropping on weekends). It is also passed temperature data as an exogenous covariate.
 - **Rolling Back-test:** The system tests its own accuracy by hiding recent data, making a prediction, and comparing its prediction to what actually happened.
 
 ### Phase 2: Deep Learning Inference
 
 **File:** `worker/chronos_client.py`
 
-- **Chronos AI:** Uses an advanced AI model developed by Amazon (Chronos-T5-Base) that has been specifically retrained (finetuned) on our grid data. 
+- **Chronos AI:** Uses the latest AI model developed by Amazon (`amazon/chronos-2`, 120M parameters) which operates as a zero-shot forecaster. Unlike its predecessors, it is capable of ingesting exogenous temperature data as known future covariates to predict weather-driven demand anomalies. 
 - **Probabilistic Forecasting:** Instead of guessing a single number, this model gives a range of possibilities (confidence intervals) to help operators plan for worst-case scenarios. 
 - **CPU Optimization:** Runs purely on standard processors (CPUs) without requiring expensive graphics cards (GPUs).
 
@@ -215,8 +215,8 @@ The pipeline hands all data to an autonomous AI agent workflow that mimics human
 
 | Layer | Technology | Purpose |
 |---|---|---|
-| **Deep Learning** | Amazon Chronos-T5-Base | Highly accurate probabilistic forecasting. |
-| **Statistical Baseline** | SARIMA (statsmodels) | A traditional, reliable mathematical benchmark. |
+| **Deep Learning** | Amazon Chronos-2 (120M) | Highly accurate probabilistic zero-shot forecasting with covariates. |
+| **Statistical Baseline** | SARIMAX (statsmodels) | A traditional, reliable mathematical benchmark. |
 | **Agent Framework** | LangGraph | Orchestrates the multi-step reasoning workflow. |
 | **Language Model (LLM)** | Groq (LLaMA-3.3-70B) | Extremely fast AI for generating text and strategies. |
 | **Vector Database** | ChromaDB + sentence-transformers | Semantically searches for similar historical grid events. |
@@ -233,7 +233,7 @@ The pipeline hands all data to an autonomous AI agent workflow that mimics human
 gridops-ai/
 ├── api/                          # FastAPI application and routes
 ├── agents/                       # LangGraph agent definitions and prompts
-├── worker/                       # Background task logic (AI inference, SARIMA)
+├── worker/                       # Background task logic (AI inference, SARIMAX)
 ├── rag/                          # Search engine for historical grid events
 ├── data_store/                   # CSV datasets and vector databases
 ├── frontend/                     # React web application
@@ -309,7 +309,7 @@ GridOps AI is built to run entirely on free-tier cloud services using a split de
 |---|---|---|
 | **Backend API** | Hugging Face Spaces (Docker) | `https://thisisaadi123-gridops-ai.hf.space` |
 | **Frontend UI** | Vercel | `https://gridopsai.vercel.app` |
-| **Finetuned Model** | Hugging Face Hub | `thisisaadi123/chronos-pjm-finetuned` |
+| **Base AI Model** | Hugging Face Hub | `amazon/chronos-2` |
 
 ### Backend Lifecycle (Hugging Face Spaces)
 
@@ -327,7 +327,7 @@ Note: Free Hugging Face Spaces sleep after 48 hours of inactivity. The frontend 
 |---|---|---|---|
 | `GROQ_API_KEY` | Yes | — | API key for the Large Language Model. |
 | `HF_MODEL_REPO` | No | — | Repository ID to download finetuned AI weights. |
-| `CHRONOS_MODEL_NAME` | No | `amazon/chronos-t5-base` | Name of the Chronos model to use for inference. |
+| `CHRONOS_MODEL_NAME` | No | `amazon/chronos-2` | Name of the Chronos model to use for inference. |
 | `CHRONOS_MODE` | No | `local` | Set to `local` to run via PyTorch on the CPU. |
 
 ### Frontend (set in Vercel Environment Settings)
@@ -366,4 +366,4 @@ Manage the historical grid event knowledge base.
 
 ## License
 
-This project is developed for educational and research purposes. The historical PJM hourly energy data used for training is publicly available. The Amazon Chronos-T5 model is released under the Apache 2.0 license.
+This project is developed for educational and research purposes. The historical PJM hourly energy data used for training is publicly available. The Amazon Chronos models are released under the Apache 2.0 license.

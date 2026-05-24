@@ -11,7 +11,7 @@ const STAGE_INFO = {
   CHRONOS_INFERENCE: {
     label: 'Chronos Inference',
     description:
-      'Running the finetuned Amazon Chronos-Bolt Base model (205M parameters) via PyTorch ' +
+      'Running the native zero-shot Amazon Chronos-2 model (120M parameters) via PyTorch ' +
       'to generate probabilistic forecasts with p10 / p50 / p90 confidence intervals.',
     estimatedSeconds: '10 – 20s',
   },

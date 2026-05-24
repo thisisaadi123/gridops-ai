@@ -24,7 +24,7 @@ echo ""
 osascript -e "tell application \"Terminal\" to do script \"cd $PROJECT_ROOT && docker compose up\""
 
 # Tab 2: Celery Worker
-osascript -e "tell application \"Terminal\" to do script \"cd $PROJECT_ROOT && source venv/bin/activate && celery -A api.celery_app worker --loglevel=info --concurrency=2\""
+osascript -e "tell application \"Terminal\" to do script \"cd $PROJECT_ROOT && source venv/bin/activate && export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES && celery -A api.celery_app worker --loglevel=info -P solo\""
 
 # Tab 3: FastAPI
 osascript -e "tell application \"Terminal\" to do script \"cd $PROJECT_ROOT && source venv/bin/activate && uvicorn api.main:app --reload --host 0.0.0.0 --port 8000\""

@@ -68,6 +68,8 @@ class BaseChronosClient(ABC):
     def forecast(
         self,
         context_series: np.ndarray,
+        past_covariates: Optional[dict[str, np.ndarray]] = None,
+        future_covariates: Optional[dict[str, np.ndarray]] = None,
         prediction_length: int = 30,
         num_samples: int = 20,
     ) -> ForecastResult:
@@ -91,44 +93,60 @@ class LocalChronosClient(BaseChronosClient):
     def forecast(
         self,
         context_series: np.ndarray,
+        past_covariates: Optional[dict[str, np.ndarray]] = None,
+        future_covariates: Optional[dict[str, np.ndarray]] = None,
         prediction_length: int = 30,
         num_samples: int = 20,
     ) -> ForecastResult:
         import torch
 
         if self.pipeline is None:
-            from chronos import BaseChronosPipeline
             logger.info(f'Lazy loading Chronos model ({self.model_name})...')
             
-            import os
-            resolved_model_path = self.model_name
-            # If path is a local directory but missing config.json, it's likely an AutoGluon wrapper.
-            # Recursively search for the actual Hugging Face model directory.
-            if os.path.isdir(resolved_model_path) and not os.path.exists(os.path.join(resolved_model_path, "config.json")):
-                for root, _, files in os.walk(resolved_model_path):
-                    if "config.json" in files:
-                        resolved_model_path = root
-                        logger.info(f"AutoGluon fine-tuned weights discovered at: {resolved_model_path}")
-                        break
+            if "chronos-2" in self.model_name.lower():
+                from chronos import Chronos2Pipeline
+                self.pipeline = Chronos2Pipeline.from_pretrained(
+                    self.model_name,
+                    device_map=self.device,
+                    torch_dtype=torch.float32,
+                )
+            else:
+                from chronos import BaseChronosPipeline
+                import os
+                resolved_model_path = self.model_name
+                # If path is a local directory but missing config.json, it's likely an AutoGluon wrapper.
+                # Recursively search for the actual Hugging Face model directory.
+                if os.path.isdir(resolved_model_path) and not os.path.exists(os.path.join(resolved_model_path, "config.json")):
+                    bolt_path = os.path.join(resolved_model_path, "models", "Chronos[amazon__chronos-bolt-base]", "fine-tuned-ckpt")
+                    if os.path.exists(os.path.join(bolt_path, "config.json")):
+                        resolved_model_path = bolt_path
+                        logger.info(f"AutoGluon fine-tuned Bolt weights discovered at: {resolved_model_path}")
+                    else:
+                        # Fallback for others
+                        for root, _, files in os.walk(resolved_model_path):
+                            if "config.json" in files:
+                                resolved_model_path = root
+                                logger.info(f"AutoGluon fine-tuned weights discovered at: {resolved_model_path}")
+                                break
 
-            try:
-                self.pipeline = BaseChronosPipeline.from_pretrained(
-                    resolved_model_path,
-                    device_map=self.device,
-                    torch_dtype=torch.float32,
-                )
-            except Exception as e:
-                fallback = "amazon/chronos-bolt-base"
-                logger.warning(
-                    f"Failed to load model '{resolved_model_path}': {e}. "
-                    f"Falling back to '{fallback}'."
-                )
-                self.model_name = fallback
-                self.pipeline = BaseChronosPipeline.from_pretrained(
-                    fallback,
-                    device_map=self.device,
-                    torch_dtype=torch.float32,
-                )
+                try:
+                    self.pipeline = BaseChronosPipeline.from_pretrained(
+                        resolved_model_path,
+                        device_map=self.device,
+                        torch_dtype=torch.float32,
+                    )
+                except Exception as e:
+                    fallback = "amazon/chronos-bolt-base"
+                    logger.warning(
+                        f"Failed to load model '{resolved_model_path}': {e}. "
+                        f"Falling back to '{fallback}'."
+                    )
+                    self.model_name = fallback
+                    self.pipeline = BaseChronosPipeline.from_pretrained(
+                        fallback,
+                        device_map=self.device,
+                        torch_dtype=torch.float32,
+                    )
 
         if self.pipeline is None:
             raise RuntimeError("Chronos pipeline failed to load — both primary and fallback models failed.")
@@ -139,27 +157,26 @@ class LocalChronosClient(BaseChronosClient):
         context = _prepare_context(context_series, context_limit=8192)
         target_tensor = torch.tensor(context, dtype=torch.float32)
         
-        # For kwargs, accept covariates if passed by tasks.py
-        import inspect
-        frame = inspect.currentframe()
-        covariates_series = None
-        future_covariates_series = None
-        if frame and frame.f_back and 'covariates_series' in frame.f_back.f_locals:
-            covariates_series = frame.f_back.f_locals.get('covariates_series')
-            future_covariates_series = frame.f_back.f_locals.get('future_covariates_series')
-
-        if covariates_series is not None and future_covariates_series is not None:
-            # Match the length of the context array
-            cov = covariates_series[-len(context):]
-            f_cov = future_covariates_series[:prediction_length]
+        if "chronos-2" in self.model_name.lower():
+            input_dict: dict[str, Any] = {"target": target_tensor}
+            if past_covariates is not None:
+                pc_dict = {}
+                for k, v in past_covariates.items():
+                    pc_list = _prepare_context(v, context_limit=8192)
+                    pc_dict[k] = torch.tensor(pc_list, dtype=torch.float32)
+                input_dict["past_covariates"] = pc_dict
             
-            inputs = [{
-                "target": target_tensor,
-                "past_covariates": {"temperature": torch.tensor(cov, dtype=torch.float32)},
-                "future_covariates": {"temperature": torch.tensor(f_cov, dtype=torch.float32)}
-            }]
+            if future_covariates is not None:
+                fc_dict = {}
+                for k, v in future_covariates.items():
+                    fc_list = v.tolist()
+                    fc_dict[k] = torch.tensor(fc_list, dtype=torch.float32)
+                input_dict["future_covariates"] = fc_dict
+                
+            inputs = [input_dict]
         else:
-            inputs = [{"target": target_tensor}]
+            # Pure univariate input for Chronos-Bolt
+            inputs = [target_tensor]
 
         quantiles, _ = self.pipeline.predict_quantiles(
             inputs,
@@ -248,6 +265,8 @@ class APIChronosClient(BaseChronosClient):
     def forecast(
         self,
         context_series: np.ndarray,
+        past_covariates: Optional[dict[str, np.ndarray]] = None,
+        future_covariates: Optional[dict[str, np.ndarray]] = None,
         prediction_length: int = 30,
         num_samples: int = 20,
     ) -> ForecastResult:
@@ -355,8 +374,8 @@ def get_chronos_client() -> BaseChronosClient:
     logger.info("Chronos mode active: {}", mode)
 
     if mode == "local":
-        model_name = "amazon/chronos-bolt-base" # Hardcoded base v2 model
-        logger.info("Chronos model name explicitly set to base model: {}", model_name)
+        model_name = "amazon/chronos-2" # Use native Chronos-2 zero-shot model
+        logger.info("Chronos model name explicitly set to zero-shot model: {}", model_name)
         return LocalChronosClient(model_name=model_name)
 
     if mode == "api":

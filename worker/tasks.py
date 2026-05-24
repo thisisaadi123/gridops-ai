@@ -49,18 +49,19 @@ def run_gridops_pipeline(self, dataset_path: str, severity_threshold: float = 0.
         client = get_chronos_client()
 
         logger.info(f"Routing to pure Daily Inference Pipeline (horizon = {forecast_horizon})")
-        
-        # Extract temperature covariates for Chronos-2 multivariate support
-        covariates_series = None
-        future_covariates_series = None
-        if pipeline.train_covariates is not None and pipeline.holdout_covariates is not None:
-            covariates_series = pipeline.train_covariates.values
-            future_covariates_series = pipeline.holdout_covariates.values
-
         # We use daily data because it allows the 512-context window to look back 1.4 years.
-        # This completely eliminates hallucination and drift.
+        # This completely eliminates hallucination and drift that occurs with 168-step hourly generation.
+        past_covs = None
+        future_covs = None
+        if pipeline.train_covariates is not None:
+            past_covs = {"temperature": pipeline.train_covariates["temperature_2m"].values}
+        if pipeline.holdout_covariates is not None:
+            future_covs = {"temperature": pipeline.holdout_covariates["temperature_2m"].values}
+
         daily_chronos_result = client.forecast(
             pipeline.train.values,  # pyrefly: ignore[bad-argument-type]
+            past_covariates=past_covs,  # type: ignore
+            future_covariates=future_covs,  # type: ignore
             prediction_length=forecast_horizon,
             num_samples=500,
         )
