@@ -99,16 +99,28 @@ class LocalChronosClient(BaseChronosClient):
         if self.pipeline is None:
             from chronos import BaseChronosPipeline
             logger.info(f'Lazy loading Chronos model ({self.model_name})...')
+            
+            import os
+            resolved_model_path = self.model_name
+            # If path is a local directory but missing config.json, it's likely an AutoGluon wrapper.
+            # Recursively search for the actual Hugging Face model directory.
+            if os.path.isdir(resolved_model_path) and not os.path.exists(os.path.join(resolved_model_path, "config.json")):
+                for root, _, files in os.walk(resolved_model_path):
+                    if "config.json" in files:
+                        resolved_model_path = root
+                        logger.info(f"AutoGluon fine-tuned weights discovered at: {resolved_model_path}")
+                        break
+
             try:
                 self.pipeline = BaseChronosPipeline.from_pretrained(
-                    self.model_name,
+                    resolved_model_path,
                     device_map=self.device,
                     torch_dtype=torch.float32,
                 )
             except Exception as e:
                 fallback = "amazon/chronos-t5-base"
                 logger.warning(
-                    f"Failed to load model '{self.model_name}': {e}. "
+                    f"Failed to load model '{resolved_model_path}': {e}. "
                     f"Falling back to '{fallback}'."
                 )
                 self.model_name = fallback
