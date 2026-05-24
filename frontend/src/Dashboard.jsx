@@ -150,7 +150,7 @@ function FullChart({ result, zoom, showHistory, showSarima = true, showChronos =
   const forecastDates = result.forecast_dates || [];
 
   if (!showHistory || histData.length === 0) {
-    const series = [{ name: 'Actual Demand', data: forecastActual, color: '#ffffff', w: 1.5 }];
+    const series = [{ name: 'Actual Demand', data: forecastActual, color: 'var(--chart-actual)', w: 1.5 }];
     if (showSarima) series.push({ name: 'SARIMA Baseline', data: forecastSarima, color: '#f59e0b', w: 1.5 });
     if (showChronos) series.push({ name: 'Chronos (p50)', data: forecastChronos, color: '#38bdf8', w: 2 });
     
@@ -237,7 +237,7 @@ function FullChart({ result, zoom, showHistory, showSarima = true, showChronos =
   ].join(' ');
 
   const seriesLegend = [
-    { name: 'Actual Demand', color: '#ffffff' }
+    { name: 'Actual Demand', color: 'var(--chart-actual)' }
   ];
   if (showSarima) seriesLegend.push({ name: 'SARIMA Baseline', color: '#f59e0b' });
   if (showChronos) seriesLegend.push({ name: 'Chronos (p50)', color: '#38bdf8' });

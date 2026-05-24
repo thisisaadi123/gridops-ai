@@ -996,6 +996,9 @@ a { color: var(--accent-cyan); text-decoration: none; }
 .hidden-print-show { display: none; }
 
 @media print {
+  :root {
+    --chart-actual: #0f172a !important;
+  }
   .no-print {
     display: none !important;
   }
