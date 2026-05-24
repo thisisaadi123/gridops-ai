@@ -994,28 +994,92 @@ a { color: var(--accent-cyan); text-decoration: none; }
   animation: fadeIn 0.4s ease-out;
 }
 
+.hidden-print-show { display: none; }
+
 @media print {
   .no-print {
     display: none !important;
   }
-}
+  
+  .hidden-print-show { 
+    display: block !important; 
+  }
+  
+  .tab-buttons, .tab-bar, .top-horizontal-panel button, .action-buttons { 
+    display: none !important; 
+  }
 
-.hidden-print-show { display: none; }
-@media print {
-  .hidden-print-show { display: block !important; }
-  .tab-buttons { display: none !important; }
-  .tab-bar { display: none !important; }
   body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    background-color: var(--bg-dark) !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
   }
   
-  /* Force text colors to be light/white in PDF generation to fix contrast against dark boxes */
-  .tab-context, .summary-item p {
-    color: #e2e8f0 !important;
+  /* Convert Glass Cards to Light Mode */
+  .glass-card {
+    background-color: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+    page-break-inside: avoid !important;
+    margin-bottom: 24px !important;
   }
-  .tab-context strong, .summary-item strong {
-    color: #ffffff !important;
+
+  /* Force Text Colors to Dark for Readability */
+  h1, h2, h3, h4, h5, h6, p, span, div, strong, small {
+    color: #0f172a !important;
+  }
+  
+  /* Preserve Accent Colors for specifically highlighted items if possible, but safely fallback to dark */
+  .accent-blue { color: #0284c7 !important; }
+  .accent-cyan { color: #0891b2 !important; }
+  .accent-amber { color: #b45309 !important; }
+  
+  /* Specific component overrides */
+  .summary-item {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    page-break-inside: avoid !important;
+  }
+  
+  .summary-item div {
+    color: #0f172a !important;
+  }
+  
+  /* Charts and Heatmaps */
+  svg {
+    max-width: 100% !important;
+    height: auto !important;
+    page-break-inside: avoid !important;
+  }
+  
+  /* Chart Tooltips or interactive elements shouldn't print */
+  .chart-tooltip, .chart-toggle-group {
+    display: none !important;
+  }
+  
+  /* Ensure grids stack nicely or fit the page */
+  .summary-grid, .similarity-grid {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 16px !important;
+  }
+  
+  .summary-grid > *, .similarity-grid > * {
+    flex: 1 1 200px !important;
+  }
+
+  /* Mandate Cards */
+  .mandate-card-wrapper {
+    background: #ffffff !important;
+    border: 2px solid #cbd5e1 !important;
+    page-break-inside: avoid !important;
+  }
+  
+  .threat-card {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    page-break-inside: avoid !important;
   }
 }
