@@ -409,12 +409,13 @@ function FullChart({ result, zoom, showHistory, showSarima = true, showChronos =
   );
 }
 
-function Metric({ label, value, help, tone = '' }) {
+function Metric({ label, value, help, tone = '', formula = null }) {
   return (
     <div className={`metric ${tone}`}>
       <span className="metric-label">{label}</span>
       <strong className="metric-value" style={{ fontSize: '28px' }}>{value}</strong>
       <small className="metric-help" style={{ fontSize: '11px', marginTop: '4px', lineHeight: 1.4 }}>{help}</small>
+      {formula && <code style={{ display: 'block', fontSize: '10px', marginTop: '8px', color: 'var(--text-tertiary)', background: 'rgba(0,0,0,0.2)', padding: '6px', borderRadius: '4px' }}>Formula: {formula}</code>}
     </div>
   );
 }
@@ -848,7 +849,7 @@ function InsightsPanel({ result }) {
         </svg>
         <div style={{ marginTop: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Anomaly Severity</div>
         
-        <div style={{ marginTop: '16px', fontSize: '12px', color: 'var(--text-tertiary)', maxWidth: '400px', margin: '16px auto', textAlign: 'left', background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '8px' }}>
+        <div style={{ marginTop: '16px', fontSize: '12px', color: 'var(--text-tertiary)', maxWidth: '400px', margin: '16px auto', textAlign: 'center', background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '8px' }}>
           <strong>Calculation Formula:</strong> The severity score is a weighted combination of three independent signals:<br/>
           <code style={{display: 'block', marginTop: '6px', color: 'var(--accent-teal)'}}>
             (0.40 × {div_signal.toFixed(2)} Divergence) + <br/>
@@ -858,7 +859,7 @@ function InsightsPanel({ result }) {
         </div>
       </div>
       <div className="insight-metrics" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', alignItems: 'center' }}>
-        <Metric label="Model Divergence" value={`${result.variance_magnitude_pct?.toFixed(2) || '0'}%`} help="Mean absolute % difference between Chronos and SARIMA forecasts." />
+        <Metric label="Model Divergence" value={`${result.variance_magnitude_pct?.toFixed(2) || '0'}%`} help="Mean absolute % difference between Chronos and SARIMA forecasts." formula="Mean[ |Chronos_MW - SARIMA_MW| / SARIMA_MW ] * 100" />
         <Metric label="Risk/Reward Ratio" value={result.risk_reward_ratio?.toFixed(2) || 'N/A'} help="Higher >1 indicates upside risk dominates; informs reserve deployment." />
         <Metric label="Downside (p10)" value={`${num(result.downside_var_mw).toLocaleString()} MW`} help="Potential low‑demand tail scenario." />
         <Metric label="Upside (p90)" value={`${num(result.upside_var_mw).toLocaleString()} MW`} help="Potential high‑demand tail scenario." />
