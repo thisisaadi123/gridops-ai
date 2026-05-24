@@ -900,11 +900,6 @@ function DivergenceTab({ result }) {
 
   return (
     <div>
-      <div className="tab-context">
-        <strong>Context:</strong> Model Divergence measures the percentage difference between the Chronos deep learning forecast and the SARIMA statistical baseline. A high divergence indicates that the AI detects a complex weather or grid pattern that classical statistics missed.
-        <br/><br/>
-        <strong>Calculation:</strong> Computed as <code style={{ wordBreak: 'break-all' }}>mean(|{Math.round(chronosMw).toLocaleString()} − {Math.round(sarimaMw).toLocaleString()}| / {Math.round(sarimaMw).toLocaleString()}) × 100</code>, which yields <strong>{divPct.toFixed(2)}%</strong>.
-      </div>
 
       <div className="summary-grid" style={{ marginBottom: '16px', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
         <div className="summary-item">
