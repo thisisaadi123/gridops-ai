@@ -61,7 +61,7 @@ Output a JSON object with EXACTLY these keys:
     "Briefly explain how event 2 informs today's decision.",
     "Briefly explain how event 3 informs today's decision."
   ],
-  "summary_rationale": "A comprehensive, highly detailed summary paragraph (4-6 sentences) synthesizing the final recommendation. You must explicitly cite the Anomaly Severity Score, the divergence percentage, WAPE, and p10/p90 risks from the text. Do not loop back, repeat yourself, or hallucinate data that wasn't provided.",
+  "summary_rationale": "Write a highly detailed, semantic 3-part operational briefing using \\n\\n to separate sections within the string. 1. The Divergence (The Warning Sign): Interpret the physical reality of the divergence (e.g. models aggressively disagreeing on heatwaves). 2. The Tail Risk (The Danger): Explain the p90/p10 risks and risk/reward ratio in physical grid terms (e.g. a massive demand spike threatening a blackout). 3. The Semantic Conclusion: Combine these to explicitly justify the severity score and final mandate. Do NOT just regurgitate numbers; explain the physical terror or safety of the grid scenario.",
   "re_evaluation_trigger": "One observable condition to trigger re-evaluation."
 }}
 """
@@ -98,7 +98,7 @@ Output a JSON object with EXACTLY these keys:
     "Briefly explain how event 2 supports maintaining operations.",
     "Briefly explain how event 3 supports maintaining operations."
   ],
-  "summary_rationale": "A comprehensive, highly detailed summary paragraph (4-6 sentences) synthesizing why we are maintaining operations. You must explicitly cite the low Anomaly Severity Score, the divergence percentage, WAPE, and p10/p90 risks from the text. Do not loop back, repeat yourself, or hallucinate data that wasn't provided.",
+  "summary_rationale": "Write a highly detailed, semantic 3-part operational briefing using \\n\\n to separate sections within the string. 1. The Divergence (The Warning Sign): Interpret the physical reality of the divergence. 2. The Tail Risk (The Danger): Explain the p90/p10 risks and risk/reward ratio in physical grid terms. 3. The Semantic Conclusion: Combine these to explicitly justify why the severity score is low and why maintaining operations is safe. Do NOT just regurgitate numbers; explain the physical reality.",
   "re_evaluation_trigger": "One observable condition to trigger re-evaluation."
 }}
 """
