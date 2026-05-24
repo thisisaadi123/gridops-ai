@@ -634,64 +634,72 @@ function HistoricalSimilarity({ result }) {
   const historicalAnalysis = result.trading_mandate?.historical_analysis || [];
 
   return (
-    <section className="similarity-section glass-card" style={{ padding: '32px', marginBottom: '24px' }}>
-      <div className="similarity-header">
+    <section className="rag-section glass-card" style={{ padding: '32px', marginBottom: '24px' }}>
+      <div className="section-header" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <h3 className="card-title" style={{ marginBottom: '4px' }}>
-            Historical Event Memory
+          <div className="section-label" style={{ marginBottom: '8px' }}>Vector Search Engine</div>
+          <h3 className="card-title" style={{ marginBottom: '4px', color: 'var(--accent-rose)' }}>
+            System Memory: Past Grid Failures & Threats
           </h3>
-          <p className="chart-help" style={{ marginBottom: 0 }}>
-            The RAG retriever searched the vector database for events semantically similar to the current anomaly pattern. Below are the historical precedents the AI used to calibrate its recommendation.
+          <p className="chart-help" style={{ marginBottom: 0, color: 'var(--text-secondary)' }}>
+            The AI scanned thousands of historical grid hours and found exact topological matches to today's anomaly. These precedents dictate our immediate action.
           </p>
         </div>
       </div>
 
-      <div style={{ marginBottom: '24px', fontSize: '15px', color: 'var(--text-primary)', lineHeight: '1.6' }}>
+      <div style={{ marginBottom: '32px', fontSize: '15px', color: 'var(--text-primary)', lineHeight: '1.6', background: 'rgba(239, 68, 68, 0.1)', borderLeft: '4px solid var(--accent-rose)', padding: '16px', borderRadius: '4px' }}>
         <span>
-          The AI identified <strong>{events.length} historical precedent{events.length !== 1 ? 's' : ''}</strong> matching 
+          <strong>WARNING:</strong> The Vector Database identified <strong>{events.length} exact historical matches</strong> to 
           the current {regime.toLowerCase()}-period {direction.toLowerCase().replace('_', ' ')} divergence of {magnitude.toFixed(1)}%. 
-          These events informed the final {(result.trading_mandate?.recommendation || 'MAINTAIN OPS').toUpperCase()} recommendation.
+          Ignoring these specific precedents historically led to severe grid instability. The AI is strictly enforcing a <strong>{(result.trading_mandate?.recommendation || 'MAINTAIN OPS').toUpperCase()}</strong> mandate to prevent a repeat blackout scenario.
         </span>
       </div>
 
-      {/* Event Match Cards */}
-      <div className="similarity-grid">
+      {/* Threat Match Cards */}
+      <div className="similarity-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
         {events.map((event, i) => {
           const sevClass = `sev-${(event.severity || 'medium').toLowerCase()}`;
+          const isPositiveImpact = parseFloat(event.demand_impact_pct) > 0;
           return (
-            <div key={i} className="similarity-card">
-              <div className="similarity-basis" style={{ background: 'none', padding: 0, border: 'none', marginBottom: '16px' }}>
-                <span className="similarity-basis-label" style={{ fontSize: '14px', color: 'var(--text-primary)', marginBottom: '8px' }}>
-                  <i className="dot" style={{ width: '8px', height: '8px', background: 'var(--accent-cyan)', display: 'inline-block', marginRight: '8px' }} />
-                  {event.event_type || 'Unknown Event'}
-                </span>
-                <p className="similarity-basis-text" style={{ fontSize: '14px', lineHeight: '1.6', color: 'var(--text-secondary)' }}>{historicalAnalysis[i] || 'No specific reasoning provided by AI for this event.'}</p>
-              </div>
+            <div key={i} className="similarity-card" style={{ border: '1px solid var(--glass-border)', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', padding: '24px', position: 'relative', overflow: 'hidden' }}>
+              {/* Top Accent Line */}
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'var(--accent-rose)' }}></div>
               
-              <details style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
-                <summary style={{ fontSize: '12px', color: 'var(--text-tertiary)', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 'bold' }}>
-                  Click to view full event details
-                </summary>
-                
-                <div style={{ marginTop: '16px' }}>
-                  <div className="similarity-card-header" style={{ marginBottom: '12px' }}>
-                    <div className="similarity-card-title">
-                      <strong style={{ color: 'var(--text-primary)' }}>{event.event_type}</strong>
-                      <span className={`sev ${sevClass}`}>{event.severity}</span>
-                    </div>
-                    <div className="similarity-card-meta">
-                      <span className="impact">{parseFloat(event.demand_impact_pct) > 0 ? '+' : ''}{event.demand_impact_pct}% impact</span>
-                      {event.grid_region && <span className="impact">{event.grid_region}</span>}
-                    </div>
-                  </div>
-                  <p className="similarity-card-desc" style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0 }}>{event.description}</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                <div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' }}>Threat Match</div>
+                  <strong style={{ color: 'var(--text-primary)', fontSize: '18px', display: 'block' }}>{event.event_type || 'Unknown Event'}</strong>
                 </div>
-              </details>
+                <div style={{ textAlign: 'right' }}>
+                  <span className={`sev ${sevClass}`} style={{ fontSize: '11px', padding: '4px 8px' }}>{event.severity}</span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '16px', marginBottom: '20px', background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '8px' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '4px' }}>Demand Impact</div>
+                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: isPositiveImpact ? 'var(--accent-rose)' : 'var(--accent-emerald)' }}>
+                    {isPositiveImpact ? '+' : ''}{event.demand_impact_pct}% MW
+                  </div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '4px' }}>Grid Region</div>
+                  <div style={{ fontSize: '16px', color: 'var(--text-secondary)' }}>
+                    {event.grid_region || 'SYSTEM-WIDE'}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '16px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Historical Incident Log</div>
+                <p style={{ fontSize: '14px', lineHeight: '1.6', color: 'var(--text-secondary)', margin: 0 }}>
+                  {event.description || 'No description available for this incident.'}
+                </p>
+              </div>
             </div>
           );
         })}
       </div>
-
 
     </section>
   );
