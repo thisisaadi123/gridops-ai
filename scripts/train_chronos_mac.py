@@ -57,13 +57,14 @@ def main():
                 "batch_size": 2,              # Inference batch size
                 "fine_tune_batch_size": 1,    # ABSOLUTE MINIMUM batch to fit 200M model in 8GB RAM
                 # --- Anti-Overfitting Training settings ---
-                "fine_tune_steps": 150,       # Early stopping (150 steps instead of 500) to prevent memorizing noise
-                "fine_tune_lr": 3e-5,         # Lower learning rate to preserve the base model's generalized knowledge
+                "fine_tune_steps": 5000,      # Train for 5000 steps to properly learn the PJM patterns
+                "fine_tune_lr": 1e-5,         # Smaller learning rate for a longer training run
                 # Force non-fused optimizer (fused AdamW requires CUDA, not MPS)
                 "fine_tune_trainer_kwargs": {
                     "optim": "adamw_torch",
+                    "gradient_accumulation_steps": 8,  # Simulates a batch size of 8 while only using RAM for 1
                     "disable_tqdm": False,      # Show progress bar
-                    "logging_steps": 10,         # Print loss every 10 steps
+                    "logging_steps": 50,        # Print loss every 50 steps
                 },
             }
         },

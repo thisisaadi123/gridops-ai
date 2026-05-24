@@ -452,7 +452,8 @@ def strategy_formulator_node(state: GridOpsState) -> dict:
     # Get the LLM summary
     summary_rationale = mandate.get('summary_rationale', '')
 
-    static_intro = "The GridOps AI pipeline has analyzed the current 14-day forecast window. Below is the operational assessment of the predictive models."
+    horizon = state.get('forecast_horizon', 14)
+    static_intro = f"The GridOps AI pipeline has analyzed the current {horizon}-day forecast window. Below is the operational assessment of the predictive models."
 
     mandate_narrative = (
         f"{static_intro}\n\n"
@@ -552,7 +553,8 @@ def conservative_advisory_node(state: GridOpsState) -> dict:
     
     summary_rationale = mandate.get('summary_rationale', '')
 
-    static_intro = "The GridOps AI pipeline has analyzed the current 14-day forecast window. Below is the operational assessment of the predictive models."
+    horizon = state.get('forecast_horizon', 14)
+    static_intro = f"The GridOps AI pipeline has analyzed the current {horizon}-day forecast window. Below is the operational assessment of the predictive models."
 
     mandate_narrative = (
         f"{static_intro}\n\n"
