@@ -129,15 +129,15 @@ export function Dashboard({ result, elapsed, onNew, onExport, horizon }) {
         </div>
       </div>
 
-      <StakeholderSummary result={result} horizon={horizon} />
-      <AnalysisTabs result={result} />
+      <div style={{ display: 'flex', gap: '24px', marginBottom: '24px' }}>
+        <div style={{ flex: 2 }}><AnalysisTabs result={result} defaultTab="seasonality" /></div>
+        <div style={{ flex: 1 }}><RegimeSynthesis result={result} /></div>
+      </div>
 
       {/* Historical Event Similarity Section */}
       <HistoricalSimilarity result={result} />
       
-      <div style={{ paddingBottom: '20px' }}>
-        <ExecutionTrace trace={result.graph_execution_trace} />
-      </div>
+      <div style={{ paddingBottom: '20px' }}></div>
     </div>
   );
 }
@@ -870,10 +870,10 @@ function InsightsPanel({ result }) {
 }
 
 function AnalysisTabs({ result }) {
-  const [tab, setTab] = useState('divergence');
+  const [tab, setTab] = useState('seasonality');
   const tabs = [
-    ['divergence', 'Divergence Report'],
     ['seasonality', 'Seasonality Analysis'],
+    ['divergence', 'Divergence Report'],
   ];
 
   return (
@@ -1108,90 +1108,93 @@ function SeasonalityTab({ result }) {
         </div>
       </div>
 
-      {/* Forecast Demand Heatmap */}
-      {heatmapData.length > 0 && (
-        <div style={{ marginBottom: '28px' }}>
-          <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '12px', letterSpacing: '0.04em' }}>FORECAST DEMAND HEATMAP</h4>
-          <div style={{ overflowX: 'auto', paddingBottom: '8px' }}>
-            <svg width={svgW + 20} height={svgH + 40} style={{ display: 'block' }}>
-              {/* Week labels */}
-              {weekKeys.map((wk, wi) => (
-                <text key={`wk-${wk}`}
-                  x={labelW + wi * (cellW + gap) + cellW / 2}
-                  y={12}
-                  textAnchor="middle"
-                  fill="var(--text-tertiary)"
-                  style={{ fontSize: '10px', fontFamily: 'JetBrains Mono, monospace' }}
-                >Week {parseInt(wk) + 1}</text>
-              ))}
-              {/* Day-of-week labels */}
-              {dowLabels.map((d, di) => (
-                <text key={`dow-${d}`}
-                  x={labelW - 6}
-                  y={headerH + di * (cellH + gap) + cellH / 2 + 4}
-                  textAnchor="end"
-                  fill="var(--text-tertiary)"
-                  style={{ fontSize: '10px', fontFamily: 'JetBrains Mono, monospace' }}
-                >{d}</text>
-              ))}
-              {/* Heatmap cells */}
-              {heatmapData.map((cell, ci) => {
-                const cx = labelW + cell.week * (cellW + gap);
-                const cy = headerH + cell.dow_idx * (cellH + gap);
-                const t = (cell.value - heatMin) / heatRange;
-                return (
-                  <g key={ci}>
-                    <rect
-                      x={cx} y={cy} width={cellW} height={cellH}
-                      rx={4}
-                      fill={heatColor(cell.value)}
-                      opacity={0.85 + t * 0.15}
-                    >
-                      <title>{cell.date}: {Math.round(cell.value).toLocaleString()} MW</title>
-                    </rect>
-                    <text
-                      x={cx + cellW / 2}
-                      y={cy + cellH / 2 - 2}
-                      textAnchor="middle"
-                      fill={t > 0.5 ? '#fff' : 'rgba(255,255,255,0.9)'}
-                      style={{ fontSize: '11px', fontWeight: 600, fontFamily: 'JetBrains Mono, monospace' }}
-                    >{(cell.value / 1000).toFixed(1)}k</text>
-                    <text
-                      x={cx + cellW / 2}
-                      y={cy + cellH / 2 + 11}
-                      textAnchor="middle"
-                      fill={t > 0.5 ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.5)'}
-                      style={{ fontSize: '8px', fontFamily: 'JetBrains Mono, monospace' }}
-                    >{cell.date.substring(5)}</text>
-                  </g>
-                );
-              })}
-              {/* Color scale legend */}
-              <defs>
-                <linearGradient id="heatGrad" x1="0" x2="1" y1="0" y2="0">
-                  <stop offset="0%" stopColor="rgb(15, 23, 42)" />
-                  <stop offset="50%" stopColor="rgb(6, 182, 212)" />
-                  <stop offset="100%" stopColor="rgb(244, 63, 94)" />
-                </linearGradient>
-              </defs>
-              <rect x={labelW} y={svgH + 8} width={Math.min(200, svgW - labelW - 20)} height={8} rx={4} fill="url(#heatGrad)" />
-              <text x={labelW} y={svgH + 28} fill="var(--text-tertiary)" style={{ fontSize: '9px', fontFamily: 'JetBrains Mono, monospace' }}>
-                {(heatMin / 1000).toFixed(0)}k MW
-              </text>
-              <text x={labelW + Math.min(200, svgW - labelW - 20)} y={svgH + 28} textAnchor="end" fill="var(--text-tertiary)" style={{ fontSize: '9px', fontFamily: 'JetBrains Mono, monospace' }}>
-                {(heatMax / 1000).toFixed(0)}k MW
-              </text>
-            </svg>
+      {/* Heatmap & Synthesis Flex Container */}
+      <div style={{ display: 'flex', gap: '32px', marginBottom: '28px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        {/* Forecast Demand Heatmap */}
+        {heatmapData.length > 0 && (
+          <div style={{ flex: '0 0 auto', maxWidth: '100%' }}>
+            <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '12px', letterSpacing: '0.04em' }}>FORECAST DEMAND HEATMAP</h4>
+            <div style={{ overflowX: 'auto', paddingBottom: '8px' }}>
+              <svg width={svgW + 20} height={svgH + 40} style={{ display: 'block' }}>
+                {/* Week labels */}
+                {weekKeys.map((wk, wi) => (
+                  <text key={`wk-${wk}`}
+                    x={labelW + wi * (cellW + gap) + cellW / 2}
+                    y={12}
+                    textAnchor="middle"
+                    fill="var(--text-tertiary)"
+                    style={{ fontSize: '10px', fontFamily: 'JetBrains Mono, monospace' }}
+                  >Week {parseInt(wk) + 1}</text>
+                ))}
+                {/* Day-of-week labels */}
+                {dowLabels.map((d, di) => (
+                  <text key={`dow-${d}`}
+                    x={labelW - 6}
+                    y={headerH + di * (cellH + gap) + cellH / 2 + 4}
+                    textAnchor="end"
+                    fill="var(--text-tertiary)"
+                    style={{ fontSize: '10px', fontFamily: 'JetBrains Mono, monospace' }}
+                  >{d}</text>
+                ))}
+                {/* Heatmap cells */}
+                {heatmapData.map((cell, ci) => {
+                  const cx = labelW + cell.week * (cellW + gap);
+                  const cy = headerH + cell.dow_idx * (cellH + gap);
+                  const t = (cell.value - heatMin) / heatRange;
+                  return (
+                    <g key={ci}>
+                      <rect
+                        x={cx} y={cy} width={cellW} height={cellH}
+                        rx={4}
+                        fill={heatColor(cell.value)}
+                        opacity={0.85 + t * 0.15}
+                      >
+                        <title>{cell.date}: {Math.round(cell.value).toLocaleString()} MW</title>
+                      </rect>
+                      <text
+                        x={cx + cellW / 2}
+                        y={cy + cellH / 2 - 2}
+                        textAnchor="middle"
+                        fill={t > 0.5 ? '#fff' : 'rgba(255,255,255,0.9)'}
+                        style={{ fontSize: '11px', fontWeight: 600, fontFamily: 'JetBrains Mono, monospace' }}
+                      >{(cell.value / 1000).toFixed(1)}k</text>
+                      <text
+                        x={cx + cellW / 2}
+                        y={cy + cellH / 2 + 11}
+                        textAnchor="middle"
+                        fill={t > 0.5 ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.5)'}
+                        style={{ fontSize: '8px', fontFamily: 'JetBrains Mono, monospace' }}
+                      >{cell.date.substring(5)}</text>
+                    </g>
+                  );
+                })}
+                {/* Color scale legend */}
+                <defs>
+                  <linearGradient id="heatGrad" x1="0" x2="1" y1="0" y2="0">
+                    <stop offset="0%" stopColor="rgb(15, 23, 42)" />
+                    <stop offset="50%" stopColor="rgb(6, 182, 212)" />
+                    <stop offset="100%" stopColor="rgb(244, 63, 94)" />
+                  </linearGradient>
+                </defs>
+                <rect x={labelW} y={svgH + 8} width={Math.min(200, svgW - labelW - 20)} height={8} rx={4} fill="url(#heatGrad)" />
+                <text x={labelW} y={svgH + 28} fill="var(--text-tertiary)" style={{ fontSize: '9px', fontFamily: 'JetBrains Mono, monospace' }}>
+                  {(heatMin / 1000).toFixed(0)}k MW
+                </text>
+                <text x={labelW + Math.min(200, svgW - labelW - 20)} y={svgH + 28} textAnchor="end" fill="var(--text-tertiary)" style={{ fontSize: '9px', fontFamily: 'JetBrains Mono, monospace' }}>
+                  {(heatMax / 1000).toFixed(0)}k MW
+                </text>
+              </svg>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* LLM Regime Synthesis */}
-      <div style={{ marginTop: '8px' }}>
-        <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', letterSpacing: '0.04em' }}>REGIME SYNTHESIS</h4>
-        <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.7, margin: 0 }}>
-          {result.seasonal_demand_pattern || 'No regime analysis available.'}
-        </p>
+        {/* LLM Regime Synthesis */}
+        <div style={{ flex: '1 1 300px', background: 'rgba(0,0,0,0.2)', padding: '24px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', letterSpacing: '0.04em' }}>REGIME SYNTHESIS</h4>
+          <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.7, margin: 0 }}>
+            {result.seasonal_demand_pattern || 'No regime analysis available.'}
+          </p>
+        </div>
       </div>
     </div>
   );
