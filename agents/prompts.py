@@ -36,7 +36,7 @@ RULES:
 - Output valid JSON only.
 - Be concise and grounded. Do not hallucinate grid data.
 - The summary_rationale should be exactly 1 paragraph explaining the final decision in plain English.
-- The historical_analysis must interpret the retrieved events based on their data, without inventing details."""
+- For historical_analysis, you MUST strictly use the exact events and descriptions provided in the HISTORICAL PRECEDENTS section. Do NOT hallucinate or rewrite the event descriptions."""
 
 STRATEGY_HUMAN = """
 Review this quantitative assessment from the engineering team:
@@ -57,9 +57,9 @@ Output a JSON object with EXACTLY these keys:
   "recommendation": "INCREASE GENERATION" | "DEPLOY RESERVES" | "MAINTAIN OPS",
   "confidence_score": "integer 0-100",
   "historical_analysis": [
-    "Briefly explain how event 1 informs today's decision.",
-    "Briefly explain how event 2 informs today's decision.",
-    "Briefly explain how event 3 informs today's decision."
+    "Strictly quote or use the exact description of event 1 from the DB and state how it informs today's decision.",
+    "Strictly quote or use the exact description of event 2 from the DB and state how it informs today's decision.",
+    "Strictly quote or use the exact description of event 3 from the DB and state how it informs today's decision."
   ],
   "summary_rationale": "Write a highly detailed, semantic 3-part operational briefing using \\n\\n to separate sections within the string. 1. The Divergence (The Warning Sign): Interpret the physical reality of the divergence (e.g. models aggressively disagreeing on heatwaves). 2. The Tail Risk (The Danger): Explain the p90/p10 risks and risk/reward ratio in physical grid terms (e.g. a massive demand spike threatening a blackout). 3. The Semantic Conclusion: Combine these to explicitly justify the severity score and final mandate. Do NOT just regurgitate numbers; explain the physical terror or safety of the grid scenario.",
   "re_evaluation_trigger": "One observable condition to trigger re-evaluation."
@@ -73,7 +73,7 @@ RULES:
 - Output valid JSON only.
 - Be concise and precise.
 - The summary_rationale should be exactly 1 paragraph explaining why we are maintaining operations.
-- The historical_analysis must interpret the retrieved events without inventing details."""
+- For historical_analysis, you MUST strictly use the exact events and descriptions provided in the HISTORICAL PRECEDENTS section. Do NOT hallucinate or rewrite the event descriptions."""
 
 CONSERVATIVE_ADVISORY_HUMAN = """
 The pipeline flagged this forecast as LOW CONFIDENCE. Review the assessment:
@@ -94,9 +94,9 @@ Output a JSON object with EXACTLY these keys:
   "recommendation": "MAINTAIN OPS",
   "confidence_score": "integer 0-40",
   "historical_analysis": [
-    "Briefly explain how event 1 supports maintaining operations.",
-    "Briefly explain how event 2 supports maintaining operations.",
-    "Briefly explain how event 3 supports maintaining operations."
+    "Strictly quote or use the exact description of event 1 from the DB and state how it supports maintaining operations.",
+    "Strictly quote or use the exact description of event 2 from the DB and state how it supports maintaining operations.",
+    "Strictly quote or use the exact description of event 3 from the DB and state how it supports maintaining operations."
   ],
   "summary_rationale": "Write a highly detailed, semantic 3-part operational briefing using \\n\\n to separate sections within the string. 1. The Divergence (The Warning Sign): Interpret the physical reality of the divergence. 2. The Tail Risk (The Danger): Explain the p90/p10 risks and risk/reward ratio in physical grid terms. 3. The Semantic Conclusion: Combine these to explicitly justify why the severity score is low and why maintaining operations is safe. Do NOT just regurgitate numbers; explain the physical reality.",
   "re_evaluation_trigger": "One observable condition to trigger re-evaluation."

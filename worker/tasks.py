@@ -55,7 +55,7 @@ def run_gridops_pipeline(self, dataset_path: str, severity_threshold: float = 0.
         daily_chronos_result = client.forecast(
             pipeline.train.values,  # pyrefly: ignore[bad-argument-type]
             prediction_length=forecast_horizon,
-            num_samples=40,
+            num_samples=100,
         )
         
         chronos_p10 = daily_chronos_result['p10']

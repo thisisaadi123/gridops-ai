@@ -742,15 +742,6 @@ function HistoricalSimilarity({ result }) {
                   </div>
               </div>
 
-              <button 
-                onClick={() => setReplayEvent(event)}
-                className="btn glass-btn" 
-                style={{ width: '100%', marginTop: '20px', background: 'rgba(255,255,255,0.05)', color: 'var(--text-primary)', border: '1px solid var(--glass-border)', padding: '12px', borderRadius: '6px', fontSize: '12px', letterSpacing: '0.1em', cursor: 'pointer', transition: 'all 0.2s ease' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'var(--text-secondary)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'var(--glass-border)'; }}
-              >
-                ▶ REPLAY HISTORICAL TOPOLOGY
-              </button>
             </div>
           );
         })}
