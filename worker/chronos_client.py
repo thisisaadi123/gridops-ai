@@ -170,6 +170,10 @@ class LocalChronosClient(BaseChronosClient):
         # quantiles is a tuple of lists. We take the first item of the batch.
         quantile_array = quantiles[0].detach().cpu().numpy()
 
+        # Remove any leading dimensions of size 1 (e.g., num_series dimension from Chronos 2)
+        while quantile_array.ndim > 2 and quantile_array.shape[0] == 1:
+            quantile_array = quantile_array[0]
+
         # Handle both (prediction_length, 3) and (3, prediction_length) shapes
         if quantile_array.shape == (prediction_length, 3):
             p10 = quantile_array[:, 0]
