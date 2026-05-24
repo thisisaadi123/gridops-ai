@@ -194,22 +194,27 @@ function Step3Pipeline() {
           example="If a transmission line sensor goes down and the reported regional load suddenly drops from 35,000 MW to 2,000 MW, the Data Validator recognizes this as a physical impossibility for the grid. It trips the circuit breaker, stopping the AI from reacting to a phantom blackout."
         />
         
+        <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '8px', border: '1px solid var(--glass-border)', margin: '24px 0', fontSize: '14px', lineHeight: '1.6' }}>
+          <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', color: 'var(--text-primary)' }}>Why execute in parallel?</h4>
+          <p style={{ margin: 0, color: 'var(--text-secondary)' }}>To make an accurate operational decision, the system needs both <em>pure mathematics</em> and <em>physical context</em> simultaneously. By calculating the raw megawatt divergence (Node 2A) at the exact same time as it evaluates the grid's seasonal stress level (Node 2B), the pipeline slashes execution time in half. Both distinct perspectives are merged instantly to combine quantitative risk with qualitative operational awareness without any lag.</p>
+        </div>
+
         <div className="pipeline-fork">
           <div className="pipeline-branch">
             <PipelineNode 
               num="2A" name="Divergence Analyst" type="math"
-              desc="Executes a differential analysis comparing the deterministic SARIMA trajectory against the probabilistic Chronos median. Synthesizes divergence magnitude, WAPE improvement, and interval sharpness into a standardized composite Severity Score (0.0 - 1.0) to quantify structural anomalies."
-              importance="This is the mathematical core — it produces the single number that determines the entire pipeline's behavior."
-              example="If SARIMA says 42,000 MW and Chronos says 35,000 MW, that 20% gap drives a high severity score."
+              desc="Calculates exactly how much the AI disagrees with the classical statistical model. It measures the megawatt gap between what the baseline expects and what the deep learning model sees coming. If the AI predicts a sudden 5,000 MW demand drop that the baseline completely misses, this node translates that physical divergence into a mathematical 0.0 to 1.0 Severity Score to flag a potential grid anomaly."
+              importance="It prevents operators from blindly following a single forecast. By continuously pitting a classical model against a deep learning model, it highlights moments when the grid behaves unpredictably, alerting operators to take manual control."
+              example="If the classic model projects a standard 42,000 MW morning ramp, but the AI detects structural signs of an unexpected 35,000 MW industrial curtailment event, the Analyst flags this 16% divergence as a critical anomaly."
             />
           </div>
           <div className="pipeline-parallel-label">Parallel Execution</div>
           <div className="pipeline-branch">
             <PipelineNode 
               num="2B" name="Seasonality Detector" type="llm"
-              desc="Leverages a Large Language Model (Groq) to cross-reference the numerical forecast with expected physical grid conditions. Identifies the prevailing operational regime (e.g., transitional shoulder months) to contextualize the severity of the anomaly."
-              importance="A 5% model divergence in summer (AC load) means something very different than in spring (mild weather)."
-              example="During summer, even small divergences matter because grid stress is already elevated."
+              desc="Analyzes the grid's current physical operating environment—like summer peak cooling or winter heating—to provide critical context for the math. A 500 MW anomaly during a mild spring 'shoulder' month might be easily absorbed by base-load generators, but that exact same 500 MW anomaly during a 100-degree summer heatwave could trigger cascading blackouts."
+              importance="Raw numbers don't tell the whole story. This node ensures the system doesn't overreact to minor shifts during low-stress seasons, while remaining hyper-sensitive during critical peak load periods where margins are razor-thin."
+              example="If the Divergence Analyst detects a 3% forecast error, the Seasonality Detector checks the calendar. If it's August, it upgrades the threat level due to high AC load. If it's October, it suppresses the alarm, knowing the grid has plenty of spare capacity."
             />
           </div>
         </div>
