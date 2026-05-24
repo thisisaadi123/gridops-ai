@@ -47,7 +47,7 @@ GridOps AI ingests 16 years of historical hourly electricity demand data from th
 
 1. **Statistical Baseline:** Fits a traditional statistical model (SARIMA) to establish a safe, conservative forecast based on historical weekly cycles.
 2. **Deep Learning Forecast:** Runs the latest Amazon Chronos-2 AI model (zero-shot, utilizing weather covariates) to generate highly accurate, probabilistic forecasts.
-3. **Agentic Reasoning:** An AI workflow (LangGraph) acts like a team of analysts. It compares the two models, searches a database of historical grid events for context, and generates a structured, plain-English grid operating mandate.
+3. **Agentic Reasoning:** An AI workflow (LangGraph) acts like a team of analysts. It compares the two models, searches a database of historical grid events for context, and generates a structured, clear grid operating mandate.
 
 All computations are executed asynchronously in the background, with real-time progress streamed to a React dashboard.
 
