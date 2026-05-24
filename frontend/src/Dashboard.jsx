@@ -129,10 +129,8 @@ export function Dashboard({ result, elapsed, onNew, onExport, horizon }) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '24px', marginBottom: '24px' }}>
-        <div style={{ flex: 2 }}><AnalysisTabs result={result} defaultTab="seasonality" /></div>
-        <div style={{ flex: 1 }}><RegimeSynthesis result={result} /></div>
-      </div>
+      <StakeholderSummary result={result} horizon={horizon} />
+      <AnalysisTabs result={result} />
 
       {/* Historical Event Similarity Section */}
       <HistoricalSimilarity result={result} />
