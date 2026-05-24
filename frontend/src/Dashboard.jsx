@@ -705,10 +705,16 @@ function InsightsPanel({ result }) {
   const offset = circumference * (1 - score);
   const gaugeColor = score >= (result.severity_threshold || 0.4) ? 'var(--accent-rose)' : 'var(--accent-emerald)';
 
+  // Calculate signals for the UI formula
+  const div_signal = Math.min((result.variance_magnitude_pct || 0) / 6.0, 1.0);
+  const wape_delta = Math.max(0, (result.sarima_wape || 0) - (result.chronos_wape || 0));
+  const wape_signal = Math.min(wape_delta / 0.03, 1.0);
+  const sharp_signal = Math.min((result.interval_sharpness || 0) / 0.001, 1.0);
+
   return (
     <section className="insights-panel glass-card" style={{ padding: '24px', marginBottom: '24px' }}>
       <div className="insight-gauge" style={{ textAlign: 'center' }}>
-        <svg width="120" height="120" viewBox="0 0 120 120">
+        <svg width="120" height="120" viewBox="0 0 120 120" style={{ display: 'block', margin: '0 auto' }}>
           <circle cx="60" cy="60" r={radius} fill="none" stroke="var(--glass-border)" strokeWidth="8" />
           <circle cx="60" cy="60" r={radius} fill="none" stroke={gaugeColor} strokeWidth="8"
             strokeDasharray={circumference} strokeDashoffset={offset}
@@ -716,6 +722,15 @@ function InsightsPanel({ result }) {
           <text x="60" y="68" textAnchor="middle" fill="var(--text-primary)" fontSize="20" fontFamily="Inter">{Math.round(score * 100)}%</text>
         </svg>
         <div style={{ marginTop: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Anomaly Severity</div>
+        
+        <div style={{ marginTop: '16px', fontSize: '12px', color: 'var(--text-tertiary)', maxWidth: '400px', margin: '16px auto', textAlign: 'left', background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '8px' }}>
+          <strong>Calculation Formula:</strong> The severity score is a weighted combination of three independent signals:<br/>
+          <code style={{display: 'block', marginTop: '6px', color: 'var(--accent-teal)'}}>
+            (0.40 × {div_signal.toFixed(2)} Divergence) + <br/>
+            (0.35 × {wape_signal.toFixed(2)} WAPE Delta) + <br/>
+            (0.25 × {sharp_signal.toFixed(2)} Sharpness) = {score.toFixed(2)}
+          </code>
+        </div>
       </div>
       <div className="insight-metrics" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', alignItems: 'center' }}>
         <Metric label="Model Divergence" value={`${result.variance_magnitude_pct?.toFixed(2) || '0'}%`} help="Mean absolute % difference between Chronos and SARIMA forecasts." />
@@ -762,6 +777,8 @@ function DivergenceTab({ result }) {
     <div>
       <div className="tab-context">
         <strong>Context:</strong> Model Divergence measures the percentage difference between the Chronos deep learning forecast and the SARIMA statistical baseline. A high divergence indicates that the AI detects a complex weather or grid pattern that classical statistics missed.
+        <br/><br/>
+        <strong>Calculation:</strong> Computed as <code>mean(|{Math.round(chronosMw).toLocaleString()} − {Math.round(sarimaMw).toLocaleString()}| / {Math.round(sarimaMw).toLocaleString()}) × 100</code>, which yields <strong>{divPct.toFixed(2)}%</strong>.
       </div>
 
       <div className="summary-grid" style={{ marginBottom: '16px' }}>
