@@ -14,7 +14,7 @@ function App() {
   const [coldStartElapsed, setColdStartElapsed] = useState(0);
   const [coldStartResolved, setColdStartResolved] = useState(false);
   const [threshold, setThreshold] = useState(0.30);
-  const [horizon, setHorizon] = useState(14);
+  const [horizon, setHorizon] = useState(7);
   const [health, setHealth] = useState({ api: 'checking', redis: 'checking', celery: 'checking' });
   const [taskId, setTaskId] = useState('');
   const [progress, setProgress] = useState({ status: 'IDLE', stage: '', progress: 0, message: '' });

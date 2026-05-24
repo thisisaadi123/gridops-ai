@@ -16,7 +16,6 @@ export function Dashboard({ result, elapsed, onNew, onExport, horizon }) {
           </div>
           <h1>{s.headline}</h1>
           <p className="subtitle">{s.subtext}</p>
-          <p className="dash-explainer">{s.explainer}</p>
         </div>
         <div className="dash-header-right no-print">
           <button className="btn-secondary compact" onClick={onExport} type="button">Export Forecast CSV</button>
@@ -1241,19 +1240,12 @@ function summarize(r, horizon) {
   const cW = num(r.chronos_wape), sW = num(r.sarima_wape);
   const better = cW <= sW;
   const level = sev >= (r.severity_threshold || 0.4) ? 'Elevated' : 'Standard';
-  
-  // Plain-English explainer for non-domain users
-  const explainer = better
-    ? `In plain terms: our AI predicted electricity demand for the next ${horizon} days and was ${Math.abs((cW - sW) * 100).toFixed(1)} percentage points more accurate than the traditional statistical model.`
-    : `In plain terms: the traditional statistical model was slightly more accurate on this ${horizon}-day window, which can happen when demand follows very predictable seasonal patterns.`;
-
   return {
     rec,
     recClass,
     sevText: sev >= (r.severity_threshold || 0.4) ? 'HIGH' : 'LOW',
     headline: `${level} grid volatility detected over the ${horizon}-day horizon.`,
     subtext: `The deep learning model ${better ? 'outperformed' : 'trailed'} the statistical baseline by ${Math.abs((cW - sW) * 100).toFixed(2)} percentage points.`,
-    explainer,
     plain: `The algorithmic severity score computed to ${(sev * 100).toFixed(0)}%. ${sev < (r.severity_threshold || 0.4) ? 'This falls below the designated action threshold; the system advises maintaining current positions.' : 'This exceeds the designated action threshold; the system mandates strategic portfolio adjustment.'}`,
   };
 }

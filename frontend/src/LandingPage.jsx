@@ -13,7 +13,6 @@ export function LandingPage({
     <div className="landing">
       {/* Hero section */}
       <section className="compact-hero">
-        <span className="kicker">Autonomous Energy Grid Intelligence</span>
         <h1>Predict demand. Quantify risk.</h1>
         <p className="subtitle">
           GridOps AI is a multi-agent system that evaluates classical statistical models against deep learning foundation models. 
@@ -108,7 +107,12 @@ function Step1Config({ threshold, setThreshold, horizon, setHorizon, error }) {
 
         <div className="field-group" style={{ marginTop: '24px' }}>
           <label className="field-label">Severity Action Threshold: <span className="highlight-text">{threshold.toFixed(2)}</span></label>
-          <p className="field-help">Risk Tolerance: Adjust the sensitivity of the AI's anomaly detection. The mathematical severity score ranges from 0.0 to 1.0. If the computed score exceeds this threshold, the AI routes to an aggressive grid balancing strategy (e.g. INCREASE GENERATION). If below, it defaults to a conservative MAINTAIN OPS advisory.</p>
+          <p className="field-help" style={{ lineHeight: '1.6' }}>
+            Sets the trigger point for emergency grid interventions. The AI calculates an Anomaly Severity Score from 0.0 to 1.0 based on forecast divergence and interval sharpness.
+            <br/><br/>
+            • <strong>Low Threshold (e.g., 0.10 - 0.30):</strong> Highly aggressive. The AI will recommend spinning up expensive backup generators even for minor forecast deviations. Best for critical peak summer days to prevent blackouts.<br/>
+            • <strong>High Threshold (e.g., 0.70 - 0.90):</strong> Highly conservative. The AI will tolerate significant forecast divergence and avoid deploying reserves unless a catastrophic failure is mathematically imminent. Best for stable shoulder months to save money.
+          </p>
           <input type="range" className="slider" min="0" max="1" step="0.05"
             value={threshold} onChange={e => setThreshold(parseFloat(e.target.value))} />
           <div className="slider-labels">
