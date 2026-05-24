@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     # Grok API base URL (OpenAI-compatible)
     groq_api_key: str
     groq_base_url: str = "https://api.groq.com/openai/v1"
-    groq_model: str = "llama3-8b-8192"
+    groq_model: str = "llama-3.1-8b-instant"
 
     # Task config
     task_result_expires: int = 3600  # 1 hour
