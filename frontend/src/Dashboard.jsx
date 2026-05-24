@@ -876,7 +876,7 @@ function AnalysisTabs({ result }) {
 
   return (
     <section className="analysis-section" style={{ marginBottom: '24px' }}>
-      <div className="tab-bar">
+      <div className="tab-bar" style={{ display: 'flex', flexWrap: 'wrap' }}>
         {tabs.map(([k, l]) => (
           <button key={k} className={tab === k ? 'active' : ''} onClick={() => setTab(k)} type="button">{l}</button>
         ))}
@@ -903,10 +903,10 @@ function DivergenceTab({ result }) {
       <div className="tab-context">
         <strong>Context:</strong> Model Divergence measures the percentage difference between the Chronos deep learning forecast and the SARIMA statistical baseline. A high divergence indicates that the AI detects a complex weather or grid pattern that classical statistics missed.
         <br/><br/>
-        <strong>Calculation:</strong> Computed as <code>mean(|{Math.round(chronosMw).toLocaleString()} − {Math.round(sarimaMw).toLocaleString()}| / {Math.round(sarimaMw).toLocaleString()}) × 100</code>, which yields <strong>{divPct.toFixed(2)}%</strong>.
+        <strong>Calculation:</strong> Computed as <code style={{ wordBreak: 'break-all' }}>mean(|{Math.round(chronosMw).toLocaleString()} − {Math.round(sarimaMw).toLocaleString()}| / {Math.round(sarimaMw).toLocaleString()}) × 100</code>, which yields <strong>{divPct.toFixed(2)}%</strong>.
       </div>
 
-      <div className="summary-grid" style={{ marginBottom: '16px' }}>
+      <div className="summary-grid" style={{ marginBottom: '16px', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
         <div className="summary-item">
           <strong>Average SARIMA Forecast</strong>
           <div style={{ fontSize: '24px', color: 'var(--text-primary)', marginTop: '4px' }}>
@@ -1023,7 +1023,7 @@ function SeasonalityTab({ result }) {
       {/* Load Composition */}
       <div style={{ marginBottom: '28px' }}>
         <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '12px', letterSpacing: '0.04em' }}>LOAD COMPOSITION</h4>
-        <div className="summary-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
+        <div className="summary-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px', marginBottom: '16px' }}>
           <div className="summary-item">
             <strong>Base Load</strong>
             <div style={{ fontSize: '22px', color: 'var(--accent-cyan)', marginTop: '4px', fontWeight: 700 }}>
@@ -1061,7 +1061,7 @@ function SeasonalityTab({ result }) {
       {/* Ramp Dynamics */}
       <div style={{ marginBottom: '28px' }}>
         <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '12px', letterSpacing: '0.04em' }}>RAMP DYNAMICS</h4>
-        <div className="summary-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+        <div className="summary-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px' }}>
           <div className="summary-item">
             <strong>Max Ramp Up</strong>
             <div style={{ fontSize: '20px', color: '#10b981', marginTop: '4px', fontWeight: 700 }}>
