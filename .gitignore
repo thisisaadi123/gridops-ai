@@ -15,6 +15,8 @@ venv/
 
 # Data — never commit large files
 *.csv
+!data_store/pjm_hourly_est.csv
+!data_store/pjm_temperature.csv
 *.sqlite3
 data_store/chroma_db/
 data_store/*.json
