@@ -55,4 +55,4 @@ types-requests==2.32.0.20240622
 locust==2.44.0
 
 # Chronos local inference
-chronos-forecasting==1.4.0
+chronos-forecasting>=2.0.0

@@ -97,7 +97,7 @@ class LocalChronosClient(BaseChronosClient):
         import torch
 
         if self.pipeline is None:
-            from chronos import BaseChronosPipeline
+            from chronos import Chronos2Pipeline
             logger.info(f'Lazy loading Chronos model ({self.model_name})...')
             
             import os
@@ -112,19 +112,19 @@ class LocalChronosClient(BaseChronosClient):
                         break
 
             try:
-                self.pipeline = BaseChronosPipeline.from_pretrained(
+                self.pipeline = Chronos2Pipeline.from_pretrained(
                     resolved_model_path,
                     device_map=self.device,
                     torch_dtype=torch.float32,
                 )
             except Exception as e:
-                fallback = "amazon/chronos-t5-base"
+                fallback = "amazon/chronos-2"
                 logger.warning(
                     f"Failed to load model '{resolved_model_path}': {e}. "
                     f"Falling back to '{fallback}'."
                 )
                 self.model_name = fallback
-                self.pipeline = BaseChronosPipeline.from_pretrained(
+                self.pipeline = Chronos2Pipeline.from_pretrained(
                     fallback,
                     device_map=self.device,
                     torch_dtype=torch.float32,
@@ -134,15 +134,41 @@ class LocalChronosClient(BaseChronosClient):
             raise RuntimeError("Chronos pipeline failed to load — both primary and fallback models failed.")
 
         _validate_forecast_request(prediction_length, num_samples)
-        context = _prepare_context(context_series, context_limit=512)
-        tensor = torch.tensor(context, dtype=torch.float32)
+        
+        # Prepare context series up to 8192 token limit for Chronos-2
+        context = _prepare_context(context_series, context_limit=8192)
+        target_tensor = torch.tensor(context, dtype=torch.float32)
+        
+        # For kwargs, accept covariates if passed by tasks.py
+        import inspect
+        frame = inspect.currentframe()
+        covariates_series = None
+        future_covariates_series = None
+        if frame and frame.f_back and 'covariates_series' in frame.f_back.f_locals:
+            covariates_series = frame.f_back.f_locals.get('covariates_series')
+            future_covariates_series = frame.f_back.f_locals.get('future_covariates_series')
+
+        if covariates_series is not None and future_covariates_series is not None:
+            # Match the length of the context array
+            cov = covariates_series[-len(context):]
+            f_cov = future_covariates_series[:prediction_length]
+            
+            inputs = [{
+                "target": target_tensor,
+                "past_covariates": {"temperature": torch.tensor(cov, dtype=torch.float32)},
+                "future_covariates": {"temperature": torch.tensor(f_cov, dtype=torch.float32)}
+            }]
+        else:
+            inputs = [{"target": target_tensor}]
 
         quantiles, _ = self.pipeline.predict_quantiles(
-            tensor,
+            inputs,
             prediction_length=prediction_length,
             quantile_levels=[0.1, 0.5, 0.9],
         )
-        quantile_array = quantiles.detach().cpu().numpy().squeeze(0)
+        
+        # quantiles is a tuple of lists. We take the first item of the batch.
+        quantile_array = quantiles[0].detach().cpu().numpy()
 
         # Handle both (prediction_length, 3) and (3, prediction_length) shapes
         if quantile_array.shape == (prediction_length, 3):
