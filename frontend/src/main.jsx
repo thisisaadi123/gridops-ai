@@ -15,6 +15,7 @@ function App() {
   const [coldStartResolved, setColdStartResolved] = useState(false);
   const [threshold, setThreshold] = useState(0.30);
   const [horizon, setHorizon] = useState(7);
+  const [targetDate, setTargetDate] = useState('2018-08-03');
   const [health, setHealth] = useState({ api: 'checking', redis: 'checking', celery: 'checking' });
   const [taskId, setTaskId] = useState('');
   const [progress, setProgress] = useState({ status: 'IDLE', stage: '', progress: 0, message: '' });
@@ -104,6 +105,7 @@ function App() {
           dataset_path: 'data_store/pjm_hourly_est.csv',
           severity_threshold: threshold,
           forecast_horizon: horizon,
+          target_date: targetDate || null,
         }),
       });
       if (!r.ok) throw new Error(`API returned ${r.status}`);
@@ -185,6 +187,7 @@ function App() {
         <LandingPage
           threshold={threshold} setThreshold={setThreshold}
           horizon={horizon} setHorizon={setHorizon}
+          targetDate={targetDate} setTargetDate={setTargetDate}
           error={error}
           onStart={startPipeline}
           onAddEvent={addEvent}

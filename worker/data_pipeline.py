@@ -105,6 +105,39 @@ class EnergyDataPipeline:
         }
 
     # ------------------------------------------------------------------
+    # Data filtering
+    # ------------------------------------------------------------------
+
+    def set_target_date(self, target_date_str: str | None) -> None:
+        """Filter the dataset to simulate a historical run up to the target date.
+        
+        Args:
+            target_date_str: Optional date string (YYYY-MM-DD). If provided, 
+                             slices both daily and hourly series to end on or before this date.
+        """
+        if not target_date_str:
+            return
+            
+        if self.daily_series is None or not hasattr(self, 'hourly_series') or self.hourly_series is None:
+            raise ValueError("Data series not available – call load_and_preprocess() first.")
+            
+        target_ts = pd.to_datetime(target_date_str)
+        
+        # Filter daily
+        self.daily_series = self.daily_series[self.daily_series.index <= target_ts]
+        
+        # Filter hourly (up to the very end of that day)
+        end_of_target_day = target_ts + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
+        self.hourly_series = self.hourly_series[self.hourly_series.index <= end_of_target_day]
+        
+        # Recompute stats
+        self.data_stats["total_days"] = len(self.daily_series)
+        self.data_stats["mean_load"] = round(float(self.daily_series.mean()), 4)
+        self.data_stats["std_load"] = round(float(self.daily_series.std()), 4)
+        self.data_stats["min_load"] = round(float(self.daily_series.min()), 4)
+        self.data_stats["max_load"] = round(float(self.daily_series.max()), 4)
+
+    # ------------------------------------------------------------------
     # Quality checks
     # ------------------------------------------------------------------
 

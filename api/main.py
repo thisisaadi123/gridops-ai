@@ -62,6 +62,7 @@ async def orchestrate(request: Request, body: OrchestrationRequest):
         dataset_path=body.dataset_path,
         severity_threshold=body.severity_threshold,
         forecast_horizon=body.forecast_horizon,
+        target_date=body.target_date,
     )
     return TaskResponse(task_id=task.id, status='QUEUED', message='Pipeline started')
 

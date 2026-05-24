@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 export function LandingPage({
-  threshold, setThreshold, horizon, setHorizon, error, onStart
+  threshold, setThreshold, horizon, setHorizon, targetDate, setTargetDate, error, onStart
 }) {
   const [step, setStep] = useState(1);
   const totalSteps = 4;
@@ -46,6 +46,7 @@ export function LandingPage({
             <Step1Config 
               threshold={threshold} setThreshold={setThreshold}
               horizon={horizon} setHorizon={setHorizon}
+              targetDate={targetDate} setTargetDate={setTargetDate}
               error={error}
             />
           )}
@@ -85,7 +86,7 @@ export function LandingPage({
    WALKTHROUGH STEPS
    ══════════════════════════════════════ */
 
-function Step1Config({ threshold, setThreshold, horizon, setHorizon, error }) {
+function Step1Config({ threshold, setThreshold, horizon, setHorizon, targetDate, setTargetDate, error }) {
   return (
     <div className="step-pane animation-fade-in glass-card">
       <div className="step-header">
@@ -103,6 +104,18 @@ function Step1Config({ threshold, setThreshold, horizon, setHorizon, error }) {
                 onClick={() => setHorizon(d)} type="button">{d}d</button>
             ))}
           </div>
+        </div>
+
+        <div className="field-group" style={{ marginTop: '24px' }}>
+          <label className="field-label">Target Backtest Date: <span className="highlight-text">{targetDate || 'Latest'}</span></label>
+          <p className="field-help">Simulate a historical run. The AI will completely ignore any data after this date, allowing you to test how it would have reacted to past grid events.</p>
+          <input 
+            type="date" 
+            className="text-input" 
+            style={{ width: '100%', marginTop: '8px', padding: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--glass-border)', color: 'var(--text-primary)', borderRadius: 'var(--radius-sm)' }}
+            value={targetDate} 
+            onChange={e => setTargetDate(e.target.value)} 
+          />
         </div>
 
         <div className="field-group" style={{ marginTop: '24px' }}>

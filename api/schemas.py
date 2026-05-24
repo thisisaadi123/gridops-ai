@@ -17,11 +17,16 @@ class OrchestrationRequest(BaseModel):
         ge=7, le=90,
         description="Number of days to forecast ahead"
     )
+    target_date: str | None = Field(
+        default=None,
+        description="Optional backtest target date (YYYY-MM-DD)"
+    )
 
     model_config = {"json_schema_extra": {"example": {
         "dataset_path": "data_store/pjm_hourly_est.csv",
         "severity_threshold": 0.40,
         "forecast_horizon": 30,
+        "target_date": "2018-08-03"
     }}}
 
 

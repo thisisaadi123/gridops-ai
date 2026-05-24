@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 
 
 @celery_app.task(bind=True, name='tasks.run_gridops_pipeline', max_retries=2)
-def run_gridops_pipeline(self, dataset_path: str, severity_threshold: float = 0.40, forecast_horizon: int = 30) -> dict:
+def run_gridops_pipeline(self, dataset_path: str, severity_threshold: float = 0.40, forecast_horizon: int = 30, target_date: str | None = None) -> dict:
     try:
         self.update_state(
             state='PROGRESS',
@@ -21,6 +21,7 @@ def run_gridops_pipeline(self, dataset_path: str, severity_threshold: float = 0.
         logger.info('DATA_PIPELINE | Starting')
         pipeline = EnergyDataPipeline(dataset_path)
         pipeline.load_and_preprocess()
+        pipeline.set_target_date(target_date)
         pipeline.validate_data_quality()
         pipeline.split_holdout(holdout_days=forecast_horizon)
         pipeline.detect_seasonality_regime()
