@@ -97,10 +97,10 @@ class EnergyDataPipeline:
         # Compute descriptive statistics
         self.data_stats = {
             "total_days": len(self.daily_series),
-            "mean_load": round(float(self.daily_series.mean()), 4),  # type: ignore
-            "std_load": round(float(self.daily_series.std()), 4),    # type: ignore
-            "min_load": round(float(self.daily_series.min()), 4),    # type: ignore
-            "max_load": round(float(self.daily_series.max()), 4),    # type: ignore
+            "mean_load": round(self.daily_series.mean(), 4),  # type: ignore
+            "std_load": round(self.daily_series.std(), 4),    # type: ignore
+            "min_load": round(self.daily_series.min(), 4),    # type: ignore
+            "max_load": round(self.daily_series.max(), 4),    # type: ignore
             "missing_pct": missing_pct,
         }
 
@@ -134,10 +134,10 @@ class EnergyDataPipeline:
         if self.data_stats is None:
             self.data_stats = {}
         self.data_stats["total_days"] = len(self.daily_series)
-        self.data_stats["mean_load"] = round(float(self.daily_series.mean()), 4)
-        self.data_stats["std_load"] = round(float(self.daily_series.std()), 4)
-        self.data_stats["min_load"] = round(float(self.daily_series.min()), 4)
-        self.data_stats["max_load"] = round(float(self.daily_series.max()), 4)
+        self.data_stats["mean_load"] = round(self.daily_series.mean(), 4)
+        self.data_stats["std_load"] = round(self.daily_series.std(), 4)
+        self.data_stats["min_load"] = round(self.daily_series.min(), 4)
+        self.data_stats["max_load"] = round(self.daily_series.max(), 4)
 
     # ------------------------------------------------------------------
     # Quality checks
