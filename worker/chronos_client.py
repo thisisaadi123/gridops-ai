@@ -97,7 +97,7 @@ class LocalChronosClient(BaseChronosClient):
         import torch
 
         if self.pipeline is None:
-            from chronos import Chronos2Pipeline
+            from chronos import BaseChronosPipeline
             logger.info(f'Lazy loading Chronos model ({self.model_name})...')
             
             import os
@@ -112,19 +112,19 @@ class LocalChronosClient(BaseChronosClient):
                         break
 
             try:
-                self.pipeline = Chronos2Pipeline.from_pretrained(
+                self.pipeline = BaseChronosPipeline.from_pretrained(
                     resolved_model_path,
                     device_map=self.device,
                     torch_dtype=torch.float32,
                 )
             except Exception as e:
-                fallback = "amazon/chronos-2"
+                fallback = "amazon/chronos-bolt-base"
                 logger.warning(
                     f"Failed to load model '{resolved_model_path}': {e}. "
                     f"Falling back to '{fallback}'."
                 )
                 self.model_name = fallback
-                self.pipeline = Chronos2Pipeline.from_pretrained(
+                self.pipeline = BaseChronosPipeline.from_pretrained(
                     fallback,
                     device_map=self.device,
                     torch_dtype=torch.float32,
@@ -355,7 +355,7 @@ def get_chronos_client() -> BaseChronosClient:
     logger.info("Chronos mode active: {}", mode)
 
     if mode == "local":
-        model_name = "amazon/chronos-2" # Hardcoded base v2 model
+        model_name = "amazon/chronos-bolt-base" # Hardcoded base v2 model
         logger.info("Chronos model name explicitly set to base model: {}", model_name)
         return LocalChronosClient(model_name=model_name)
 

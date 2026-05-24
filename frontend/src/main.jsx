@@ -333,7 +333,7 @@ function ColdStartScreen({ elapsed }) {
   const BOOT_STEPS = [
     { label: 'Starting Docker container',          duration: 15 },
     { label: 'Downloading target grid data', duration: 120 },
-    { label: 'Loading Chronos-2 Multivariate weights',   duration: 90 },
+    { label: 'Loading Chronos-Bolt weights',   duration: 90 },
     { label: 'Initializing PyTorch tensors', duration: 40 },
     { label: 'Service ready',                       duration: 999 },
   ];
@@ -356,7 +356,7 @@ function ColdStartScreen({ elapsed }) {
         </p>
         <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', maxWidth: '480px', margin: '0 auto', lineHeight: 1.6 }}>
           GridOps AI is running on Hugging Face Spaces free-tier hardware.
-          The server needs to boot up, load the Chronos-2 Multivariate AI model into memory, and start
+          The server needs to boot up, load the Chronos-Bolt AI model into memory, and start
           the background Celery workers. This takes roughly 5 to 7 minutes on a cold start.
           Once warmed up, the service stays live for 48 hours — subsequent visitors see no wait.
         </p>
