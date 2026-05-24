@@ -189,9 +189,9 @@ function Step3Pipeline() {
       <div className="pipeline-visual">
         <PipelineNode 
           num="1" name="Data Validator" type="math"
-          desc="Circuit breaker. Validates data integrity by checking for missing values, sufficient historical length, and extreme variance. Halts execution safely if data is corrupt."
-          importance="Prevents the AI from reasoning on corrupted data — a single missing month could cause a false anomaly signal."
-          example="If mean load drops below 1,000 MW (impossible for a real grid), the node halts execution to prevent bad trades."
+          desc="Acts as the system's frontline safety switch. Before any AI or forecasting runs, it physically inspects the raw grid telemetry (SCADA) data. It looks for dropped sensor feeds, unrealistic load drops, or missing timestamps. If the incoming grid data is corrupted or incomplete, it immediately halts the entire pipeline to prevent the AI from generating dangerous operational directives based on faulty readings."
+          importance="Grid sensors drop offline. Telemetry gets delayed. If the AI sees a sudden '0 MW' reading and mistakes it for a massive grid collapse rather than a simple sensor failure, it could recommend deploying millions of dollars in emergency reserves for no reason."
+          example="If a transmission line sensor goes down and the reported regional load suddenly drops from 35,000 MW to 2,000 MW, the Data Validator recognizes this as a physical impossibility for the grid. It trips the circuit breaker, stopping the AI from reacting to a phantom blackout."
         />
         
         <div className="pipeline-fork">
