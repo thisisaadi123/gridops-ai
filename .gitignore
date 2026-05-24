@@ -20,6 +20,7 @@ venv/
 *.sqlite3
 data_store/chroma_db/
 data_store/*.json
+!data_store/event_logs.json
 
 # Logs
 *.log
