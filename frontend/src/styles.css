@@ -1005,7 +1005,7 @@ a { color: var(--accent-cyan); text-decoration: none; }
     display: block !important; 
   }
   
-  .tab-buttons, .tab-bar, .top-horizontal-panel, .action-buttons { 
+  .tab-buttons, .tab-bar, .top-horizontal-panel, .action-buttons, .app-nav { 
     display: none !important; 
   }
 
@@ -1059,6 +1059,10 @@ a { color: var(--accent-cyan); text-decoration: none; }
   
   .chart-bg {
     fill: #f8fafc !important;
+  }
+  
+  .insight-gauge circle:first-of-type {
+    stroke: #e2e8f0 !important;
   }
   
   /* Chart Tooltips or interactive elements shouldn't print */
