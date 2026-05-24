@@ -314,7 +314,7 @@ function StatusModal({ health, onClose, onRefresh }) {
           })}
         </div>
         
-        <p className="status-refresh-note">Status auto-refreshes every 15 seconds.</p>
+
         <button className="btn-secondary" onClick={onRefresh} style={{marginTop: '16px'}}>
           Refresh Now
         </button>
