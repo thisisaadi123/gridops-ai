@@ -48,18 +48,36 @@ def run_gridops_pipeline(self, dataset_path: str, severity_threshold: float = 0.
         client = get_chronos_client()
 
         if forecast_horizon <= 14:
-            logger.info("Routing to High-Fidelity Hourly Inference Pipeline (horizon <= 14)")
-            chronos_result = client.forecast(
+            logger.info("Routing to Multi-Resolution Chronos Ensemble (horizon <= 14)")
+            import numpy as np
+
+            # 1. Fetch Daily Baseline (Low drift, high structural accuracy)
+            daily_chronos_result = client.forecast(
+                pipeline.train.values,  # pyrefly: ignore[bad-argument-type]
+                prediction_length=forecast_horizon,
+                num_samples=20,
+            )
+            daily_chronos_mean = np.mean(daily_chronos_result['p50'])
+
+            # 2. Fetch Hourly Shape (High-fidelity zig-zags, high drift)
+            hourly_chronos_result = client.forecast(
                 pipeline.train_hourly.values,  # pyrefly: ignore[bad-argument-type]
                 prediction_length=forecast_horizon * 24,
                 num_samples=20,
             )
-            import numpy as np
             
             # Bridge: reshape (horizon*24) -> (horizon, 24) and apply daily median
-            chronos_p10 = np.median(np.asarray(chronos_result['p10']).reshape(forecast_horizon, 24), axis=1)
-            chronos_p50 = np.median(np.asarray(chronos_result['p50']).reshape(forecast_horizon, 24), axis=1)
-            chronos_p90 = np.median(np.asarray(chronos_result['p90']).reshape(forecast_horizon, 24), axis=1)
+            hourly_p10 = np.median(np.asarray(hourly_chronos_result['p10']).reshape(forecast_horizon, 24), axis=1)
+            hourly_p50 = np.median(np.asarray(hourly_chronos_result['p50']).reshape(forecast_horizon, 24), axis=1)
+            hourly_p90 = np.median(np.asarray(hourly_chronos_result['p90']).reshape(forecast_horizon, 24), axis=1)
+
+            # 3. Ensemble Calibration
+            hourly_chronos_mean = np.mean(hourly_p50)
+            bias_shift = daily_chronos_mean - hourly_chronos_mean
+
+            chronos_p10 = np.maximum(hourly_p10 + bias_shift, 0.0)
+            chronos_p50 = np.maximum(hourly_p50 + bias_shift, 0.0)
+            chronos_p90 = np.maximum(hourly_p90 + bias_shift, 0.0)
         else:
             logger.info("Routing to Structural Daily Inference Pipeline (horizon > 14)")
             chronos_result = client.forecast(
@@ -70,23 +88,6 @@ def run_gridops_pipeline(self, dataset_path: str, severity_threshold: float = 0.
             chronos_p10 = chronos_result['p10']
             chronos_p50 = chronos_result['p50']
             chronos_p90 = chronos_result['p90']
-
-        import numpy as np
-        
-        # --- Mean-Matching Ensemble Calibration ---
-        # SARIMA (16-yr context) provides the structurally accurate baseline mean
-        sarima_mean = np.mean(sarima_fc)
-        
-        # Chronos provides the high-fidelity shape, but has a recency-biased mean
-        chronos_mean = np.mean(chronos_p50)
-        
-        # Calculate the bias shift required to anchor Chronos to SARIMA
-        bias_shift = sarima_mean - chronos_mean
-        
-        # Apply the shift and mathematically clip to 0 to prevent negative physical loads
-        chronos_p10 = np.maximum(chronos_p10 + bias_shift, 0.0)
-        chronos_p50 = np.maximum(chronos_p50 + bias_shift, 0.0)
-        chronos_p90 = np.maximum(chronos_p90 + bias_shift, 0.0)
 
         assert not isinstance(chronos_p10, list)
         assert not isinstance(chronos_p50, list)
