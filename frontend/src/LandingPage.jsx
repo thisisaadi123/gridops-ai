@@ -245,20 +245,25 @@ function Step3Pipeline() {
             <div className="gate-yes">
               <PipelineNode 
                 num="5A" name="Strategy Formulator" type="llm"
-                desc="Triggered when Severity ≥ Threshold. Functions as the primary grid adjustment engine. Synthesizes the VaR profile, historical RAG context, and seasonal risks to formulate a high-conviction INCREASE GENERATION or DEPLOY RESERVES mandate, complete with precise capacity sizing."
-                importance="The synthesis node — it combines all mathematical, seasonal, and historical signals into one actionable decision."
-                example="Produces the final 'INCREASE GENERATION' or 'DEPLOY RESERVES' mandate with capacity sizing."
+                desc="The war room. Triggered only when the grid is in verifiable danger (Severity ≥ Threshold). It acts as the final decision-maker, synthesizing the exact MW risk, the seasonal context, and the historical database to write the official emergency dispatch order. It doesn't just say 'danger'—it tells you exactly how many Megawatts of peaker plants to spin up."
+                importance="Grid emergencies require immediate, decisive action, not vague warnings. This node writes the exact physical mandate (e.g., INCREASE GENERATION) that operators can instantly hand off to the control room."
+                example="Because it's a summer heatwave and we face a 6,000 MW downside risk similar to the 2011 blackout, this node explicitly mandates: 'DEPLOY RESERVES: Spin up 6,000 MW of fast-acting natural gas capacity immediately.'"
               />
             </div>
             <div className="gate-no">
               <PipelineNode 
                 num="5B" name="Conservative Advisory" type="llm"
-                desc="Triggered when Severity < Threshold. Acts as the system's risk-mitigation circuit breaker. Classifies the minor forecast divergence as standard market stochasticity and mandates a strict HOLD to preserve capital."
-                importance="Acts as a safety valve — prevents the system from overreacting to normal market noise."
-                example="When severity is below threshold, it issues MAINTAIN OPS to avoid unnecessary cost."
+                desc="The cost-saver. Triggered when the AI notices a forecast error, but the math proves it is completely harmless (Severity < Threshold). Instead of panicking and spinning up expensive backup generators, it officially classifies the anomaly as normal grid noise and advises operators to stand down."
+                importance="Deploying emergency reserves costs millions of dollars per hour. This node prevents the system from 'crying wolf' over minor statistical blips, saving the utility massive amounts of money."
+                example="The deep learning model spotted a 200 MW demand drop, but because it's a mild October day and the severity score is only 0.15, this node issues a strict 'MAINTAIN OPS' order to prevent unnecessary spending."
               />
             </div>
           </div>
+        </div>
+
+        <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '8px', border: '1px solid var(--glass-border)', marginTop: '24px', fontSize: '14px', lineHeight: '1.6' }}>
+          <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', color: 'var(--text-primary)' }}>Why Conditional Routing?</h4>
+          <p style={{ margin: 0, color: 'var(--text-secondary)' }}>Unlike the parallel execution of nodes 2A and 2B, nodes 5A and 5B are mutually exclusive paths governed by the <strong>Severity Threshold</strong>. This prevents the AI from issuing contradictory orders. By forcing a hard mathematical fork in the road, the system guarantees that operators receive either a definitive emergency mandate or a definitive stand-down order, eliminating any operational ambiguity.</p>
         </div>
       </div>
     </div>
