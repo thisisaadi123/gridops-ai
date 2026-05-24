@@ -71,6 +71,23 @@ def run_gridops_pipeline(self, dataset_path: str, severity_threshold: float = 0.
             chronos_p50 = chronos_result['p50']
             chronos_p90 = chronos_result['p90']
 
+        import numpy as np
+        
+        # --- Mean-Matching Ensemble Calibration ---
+        # SARIMA (16-yr context) provides the structurally accurate baseline mean
+        sarima_mean = np.mean(sarima_fc)
+        
+        # Chronos provides the high-fidelity shape, but has a recency-biased mean
+        chronos_mean = np.mean(chronos_p50)
+        
+        # Calculate the bias shift required to anchor Chronos to SARIMA
+        bias_shift = sarima_mean - chronos_mean
+        
+        # Apply the shift and mathematically clip to 0 to prevent negative physical loads
+        chronos_p10 = np.maximum(chronos_p10 + bias_shift, 0.0)
+        chronos_p50 = np.maximum(chronos_p50 + bias_shift, 0.0)
+        chronos_p90 = np.maximum(chronos_p90 + bias_shift, 0.0)
+
         assert not isinstance(chronos_p10, list)
         assert not isinstance(chronos_p50, list)
         assert not isinstance(chronos_p90, list)
