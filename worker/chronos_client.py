@@ -141,8 +141,6 @@ class LocalChronosClient(BaseChronosClient):
             tensor,
             prediction_length=prediction_length,
             quantile_levels=[0.1, 0.5, 0.9],
-            temperature=0.1,
-            top_p=0.9,
         )
         quantile_array = quantiles.detach().cpu().numpy().squeeze(0)
 
@@ -230,8 +228,6 @@ class APIChronosClient(BaseChronosClient):
             "parameters": {
                 "prediction_length": prediction_length,
                 "num_samples": num_samples,
-                "temperature": 0.1,
-                "top_p": 0.9,
             },
         }
         headers = {"Authorization": f"Bearer {self.api_token}"}
