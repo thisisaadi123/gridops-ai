@@ -1001,7 +1001,7 @@ function SeasonalityTab({ result }) {
   const weatherPct = (weatherSensitive / totalRange) * 100;
 
   return (
-    <div>
+    <div className="seasonality-tab">
       {/* Section Header */}
       <div style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
