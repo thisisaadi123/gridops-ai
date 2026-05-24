@@ -79,8 +79,13 @@ class EnergyDataPipeline:
         # so we don't fabricate fake data
         load_series = load_series.dropna()
 
-        # Forward-fill any sporadic single gaps within the real range
-        load_series = load_series.ffill()
+        # Force a perfect hourly grid to handle DST gaps (23h/25h days)
+        # Drop duplicates first to prevent ValueError on DST fallback overlapping hours
+        load_series = load_series[~load_series.index.duplicated(keep="first")]
+        load_series = load_series.resample("h").ffill()
+
+        self.hourly_series = load_series.copy()
+        self.hourly_series.name = "PJME_HOURLY"
 
         # Resample to daily median MW
         self.daily_series = load_series.resample("D").median()
@@ -145,18 +150,23 @@ class EnergyDataPipeline:
     # ------------------------------------------------------------------
 
     def split_holdout(self, n_days: int = 30, holdout_days: int | None = None) -> None:
-        """Split the daily series into training and holdout sets chronologically.
+        """Split the daily and hourly series into training and holdout sets chronologically.
 
         Args:
             n_days: Number of trailing days to reserve for the holdout set.
             holdout_days: Alias for n_days (takes priority if provided).
         """
-        if self.daily_series is None:
-            raise ValueError("Daily series not available – call load_and_preprocess() first.")
+        if self.daily_series is None or not hasattr(self, 'hourly_series') or self.hourly_series is None:
+            raise ValueError("Data series not available – call load_and_preprocess() first.")
 
         days = holdout_days if holdout_days is not None else n_days
         self.train = self.daily_series.iloc[:-days]
         self.holdout = self.daily_series.iloc[-days:]
+
+        # Split hourly series at the exact same chronological boundary
+        cutoff_date = self.holdout.index[0]
+        self.train_hourly = self.hourly_series.loc[self.hourly_series.index < cutoff_date]
+        self.holdout_hourly = self.hourly_series.loc[self.hourly_series.index >= cutoff_date]
 
     # ------------------------------------------------------------------
     # Seasonality detection
