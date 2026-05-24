@@ -223,16 +223,16 @@ function Step3Pipeline() {
         
         <PipelineNode 
           num="3" name="RAG Retriever" type="rag"
-          desc="Queries a ChromaDB Vector Database to retrieve historical grid events (e.g., severe weather, infrastructure failures) that semantically match the current anomaly pattern."
-          importance="Without historical memory, the AI would treat every anomaly as novel — historical precedent provides calibration."
-          example="If today's pattern matches the 2014 Polar Vortex buildup, the AI can recommend preemptive action."
+          desc="Acts as the system's institutional memory. Instead of treating every grid anomaly as a completely novel crisis, it scans a vector database of historical grid events (like severe ice storms, sudden plant outages, or heatwaves) to find the closest statistical match to the current telemetry pattern."
+          importance="Human operators rely on decades of experience to know if a sudden load spike is a harmless glitch or the start of a cascading failure. This node gives the AI that same experiential intuition, preventing it from overreacting to known, manageable grid conditions."
+          example="If the AI spots a weird demand surge, it queries the database and realizes 'This exact mathematical signature happened during the 2021 Texas winter storm.' It immediately attaches that historical context to the current alert so operators know exactly what they are facing."
         />
         
         <PipelineNode 
           num="4" name="Risk Quantifier" type="math"
-          desc="Computes an empirical Value-at-Risk (VaR) profile. By analyzing the delta between the upper (p90) and lower (p10) quantile bounds, it translates the deep learning model's probabilistic uncertainty into definitive upside/downside Megawatt exposure."
-          importance="Translates abstract model uncertainty into concrete MW exposure that operators can act on."
-          example='"Downside risk: 6,000 MW" means demand could drop that far below the median forecast.'
+          desc="Translates abstract AI confidence intervals into hard, actionable Megawatt numbers. By analyzing the spread between the deep learning model's upper (p90) and lower (p10) prediction bounds, it calculates an exact 'Value-at-Risk' profile. It tells you the absolute worst-case scenario in physical units."
+          importance="A grid operator can't dispatch power based on 'the AI is 80% confident.' They need to know exactly how much physical spinning reserve to keep online. This node provides the definitive Megawatt buffer required to keep the grid stable even if the forecast is wrong."
+          example="Instead of saying 'Demand will be 30,000 MW with high uncertainty,' it translates the risk into: 'Maintain 30,000 MW base generation, but keep an additional 4,500 MW of fast-start gas turbines on standby to cover the downside risk profile.'"
         />
         
         <div className="pipeline-gate">
